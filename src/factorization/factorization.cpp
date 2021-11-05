@@ -269,6 +269,38 @@ int parse_phrase(unsigned char *X, int n, int i, int psv, int nsv,
 
 int main(int argc, char const *argv[])
 {
+    // input string
+    unsigned char *input = (unsigned char *)"zzzzzipzip";
+    // SA
+    // int *SA = new int[11];
+    // SA[0] = 10;
+    // SA[1] = 8;
+    // SA[2] = 5;
+    // SA[3] = 9;
+    // SA[4] = 6;
+    // SA[5] = 7;
+    // SA[6] = 4;
+    // SA[7] = 3;
+    // SA[8] = 2;
+    // SA[9] = 1;
+    // SA[10] = 0;
 
-    return 0;
+    int *SA = new int[10];
+    SA[0] = 8;
+    SA[1] = 5;
+    SA[2] = 9;
+    SA[3] = 6;
+    SA[4] = 7;
+    SA[5] = 4;
+    SA[6] = 3;
+    SA[7] = 2;
+    SA[8] = 1;
+    SA[9] = 0;
+
+    std::vector<std::pair<int, int>> *F = new std::vector<std::pair<int, int>>;
+    int result = kkp2(input, SA, 10, F);
+    printf("%d\n", result);
+
+    delete[] SA;
+    return result;
 }
