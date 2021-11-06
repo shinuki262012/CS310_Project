@@ -15,14 +15,14 @@ public class Factorization {
         int[] array = new int[input.length() + 3];
         for (int i = 0; i < input.length(); i++) {
             array[i] = (int) input.charAt(i);
-            System.out.println(array[i]);
+            // System.out.println(array[i]);
         }
         // Compute the suffix array of the string input
         Skew SA = new Skew();
         int[] suffixArray = SA.buildSuffixArray(array, 0, input.length());
-        for (int i = 0; i < suffixArray.length; i++) {
-            System.out.println(Integer.toString(suffixArray[i]));
-        }
+        // for (int i = 0; i < suffixArray.length; i++) {
+        // System.out.println(Integer.toString(suffixArray[i]));
+        // }
 
         // Trim the suffix array
         int[] suffix_array = Arrays.copyOfRange(suffixArray, 0, input.length());
@@ -31,19 +31,34 @@ public class Factorization {
         byte[] X = input.getBytes();
         int result = kkp2(X, suffix_array, input.length(), F);
         System.out.println(result);
+        for (int i = 0; i < F.size(); i++) {
+            int first = F.get(i).first;
+            if (first > 10) { // if first can be converted to a ASCII char
+                char letter = (char) first;
+                System.out.println("(" + letter + ", " + F.get(i).second + ")");
+            } else {
+                System.out.println("(" + first + ", " + F.get(i).second + ")");
+            }
+        }
 
     }
 
     public static int parse_phrase(byte[] X, int n, int i, int psv, int nsv, ArrayList<Pair<Integer, Integer>> F) {
-        int pos;
-        int len = 0;
+        int pos, len = 0;
         if (nsv == -1) {
-            while (X[psv + len] == X[i + len]) {
-                ++len;
+            if (psv < 0) {
+                while (0 == X[i + len]) {
+                    ++len;
+                }
+            } else {
+
+                while (X[psv + len] == X[i + len]) {
+                    ++len;
+                }
             }
             pos = psv;
         } else if (psv == -1) {
-            while (i + len < n && X[nsv + len] == X[i + len]) {
+            while ((i + len < n) && (X[nsv + len] == X[i + len])) {
                 ++len;
             }
             pos = nsv;
@@ -84,19 +99,24 @@ public class Factorization {
      * @return
      */
     public static int kkp2(byte[] X, int[] SA, int n, ArrayList<Pair<Integer, Integer>> F) {
-        for (int i = 0; i < X.length; i++) {
-            System.out.println(X[i]);
-        }
-        for (int i = 0; i < SA.length; i++) {
-            System.out.println(SA[i]);
-        }
-        System.out.println(n);
+        // for (int i = 0; i < X.length; i++) {
+        // System.out.println(X[i]);
+        // }
+        // for (int i = 0; i < SA.length; i++) {
+        // System.out.println(SA[i]);
+        // }
+        // System.out.println(n);
+
+        int stack_bits = 16;
+        int stack_size = 1 << stack_bits;
+        int stack_half = 1 << (stack_bits - 1);
+        int stack_mask = stack_size - 1;
 
         if (n == 0)
             return 0;
 
         int[] CS = new int[n + 5];
-        int[] stack = new int[(1 << 16) + 5];
+        int[] stack = new int[stack_size + 5];
         int top = 0;
         stack[top] = 0;
 
@@ -104,10 +124,11 @@ public class Factorization {
         CS[0] = -1;
         for (int i = 1; i <= n; ++i) {
             int sai = SA[i - 1] + 1;
+            // System.out.println("i: " + i + "SA[i-1]:" + SA[i - 1] + "sai:" + sai);
             while (stack[top] > sai) {
                 --top;
             }
-            if ((top & (((1 << 16)) - 1)) == 0) {
+            if ((top & stack_mask) == 0) {
                 if (stack[top] < 0) {
                     // Stack empty -- use implicit.
                     top = -stack[top];
@@ -117,29 +138,28 @@ public class Factorization {
                     stack[0] = -CS[top];
                     stack[1] = top;
                     top = 1;
-                } else if (top == (1 << 16)) {
+                } else if (top == stack_size) {
                     // Stack is full -- discard half.
-                    for (int j = (1 << (16 - 1)); j <= (1 << 16); ++j) {
-                        stack[j - (1 << (16 - 1))] = stack[j];
+                    for (int j = stack_half; j <= stack_size; ++j) {
+                        stack[j - stack_half] = stack[j];
                     }
                     stack[0] = -stack[0];
-                    top = (1 << (16 - 1));
+                    top = stack_half;
                 }
             }
 
             int addr = sai;
+
+            // System.out.println("top: " + top + " stack[top]:" + stack[top]);
             CS[addr] = Math.max(0, stack[top]);
             ++top;
             stack[top] = sai;
         }
-        stack = null;
-
         // Compute the phrases.
         CS[0] = 0;
         int nfactors = 0;
         int next = 1;
-        int nsv;
-        int psv;
+        int nsv, psv;
         for (int t = 1; t <= n; ++t) {
             psv = CS[t];
             nsv = CS[psv];
@@ -151,8 +171,6 @@ public class Factorization {
             CS[psv] = t;
         }
 
-        // Clean up.
-        CS = null;
         return nfactors;
     }
 }
