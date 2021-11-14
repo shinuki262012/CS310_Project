@@ -11,5 +11,4 @@ public final class Pair<V1, V2> {
         first = value1;
         second = value2;
     }
-
 }

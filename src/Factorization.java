@@ -8,10 +8,9 @@ public class Factorization {
      * 
      * @param args
      */
-    public static void main(String[] args) {
+    public static ArrayList<Pair<Integer, Integer>> factorization(String input) {
         // Get input
-        // String input = "banana";
-        String input = "zzzzzipzip";
+
         int[] array = new int[input.length() + 3];
         for (int i = 0; i < input.length(); i++) {
             array[i] = (int) input.charAt(i);
@@ -20,9 +19,9 @@ public class Factorization {
         // Compute the suffix array of the string input
         Skew SA = new Skew();
         int[] suffixArray = SA.buildSuffixArray(array, 0, input.length());
-        // for (int i = 0; i < suffixArray.length; i++) {
-        // System.out.println(Integer.toString(suffixArray[i]));
-        // }
+        for (int i = 0; i < suffixArray.length; i++) {
+            System.out.println(Integer.toString(suffixArray[i]));
+        }
 
         // Trim the suffix array
         int[] suffix_array = Arrays.copyOfRange(suffixArray, 0, input.length());
@@ -31,15 +30,19 @@ public class Factorization {
         byte[] X = input.getBytes();
         int result = kkp2(X, suffix_array, input.length(), F);
         System.out.println(result);
+        // Print the factorization
         for (int i = 0; i < F.size(); i++) {
             int first = F.get(i).first;
-            if (first > 10) { // if first can be converted to a ASCII char
+            int second = F.get(i).second;
+            if (second == 0) { // if first can be converted to a ASCII char
                 char letter = (char) first;
-                System.out.println("(" + letter + ", " + F.get(i).second + ")");
+                System.out.print("(" + letter + ", " + F.get(i).second + ")");
             } else {
-                System.out.println("(" + first + ", " + F.get(i).second + ")");
+                System.out.print("(" + first + ", " + F.get(i).second + ")");
             }
         }
+
+        return F;
 
     }
 
@@ -99,6 +102,7 @@ public class Factorization {
      * @return
      */
     public static int kkp2(byte[] X, int[] SA, int n, ArrayList<Pair<Integer, Integer>> F) {
+
         // for (int i = 0; i < X.length; i++) {
         // System.out.println(X[i]);
         // }
@@ -172,5 +176,12 @@ public class Factorization {
         }
 
         return nfactors;
+    }
+
+    public static void main(String[] args) {
+        // String input = "banana";
+        String input = "zzzzzipzip";
+
+        factorization(input);
     }
 }
