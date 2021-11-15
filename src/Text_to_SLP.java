@@ -1,18 +1,15 @@
 import java.util.*;
-
-import javax.swing.plaf.synth.SynthSpinnerUI;
-
 import java.io.*;
-import java.lang.reflect.Array;
 
 public class Text_to_SLP {
     public static Queue<String> fresh_letters;
+    public static ArrayList<Pair<String, String>> grammar; // resulting grammar
 
     /**
      * 
      * @param args
      */
-    public static void TtoG(String input) {
+    public static ArrayList<Pair<String, String>> TtoG(String input) {
         int w = input.length();
         // Compute the LZ77 factorization of the input
         Factorization fac = new Factorization();
@@ -36,7 +33,7 @@ public class Text_to_SLP {
             int first = factorization.get(i).first;
             int second = factorization.get(i).second;
 
-            if (second == 0) { // free letter
+            if (second == 0) { // a free letter
                 start[curIdx] = curIdx;
                 end[curIdx] = 1;
                 curIdx += 1;
@@ -48,9 +45,12 @@ public class Text_to_SLP {
         }
 
         fresh_letters = new LinkedList<>();
+        grammar = new ArrayList<>();
+        // TODO:
+        // Cosntruct the fresh letters, in the form of Ai, where i is an interger
         for (int f = 0; f < w; f++) {
-            System.out.println("A" + Integer.toString(f));
-            fresh_letters.add("A" + Integer.toString(f));
+            System.out.println("A" + Integer.toString(f) + " ");
+            fresh_letters.add("A" + Integer.toString(f) + " ");
         }
 
         String[] input_array = input.split("");
@@ -65,8 +65,17 @@ public class Text_to_SLP {
             System.out.println("Pairing: input: " + String.join("", input_array));
 
         }
-        // Return the constructed grammar
 
+        // Set the start symbol to S
+        grammar.set(grammar.size() - 1, grammar.get(grammar.size() - 1).setFirst("S"));
+        // Print grammar
+        System.out.println("Grammar: ");
+        for (int j = 0; j < grammar.size(); j++) {
+            System.out.println(grammar.get(j).first + " -> " + grammar.get(j).second);
+        }
+
+        // Return the constructed grammar
+        return grammar;
     }
 
     public static void Pairing(String[] input, int[] start, int[] end, int[] pair) {
@@ -169,22 +178,27 @@ public class Text_to_SLP {
                     i++; // move to the right by the whole pair
                     iP++;
                 } else {
-                    input[iP] = fresh_letters.remove(); // Paired free letters are replaced by a fresh letter
+                    String nonTerminal = fresh_letters.remove();
+                    String rhs = input[iP] + input[iP + 1];
+                    System.out.println(nonTerminal + rhs);
+                    input[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
+                    // Record the grammar ruls
+                    Pair<String, String> rule = new Pair(nonTerminal, rhs);
+                    grammar.add(rule);
                     i += 2;
                     iP += 1;
                 }
             }
         }
-        // trim and return the input
+        // trim and return the new word
         return Arrays.copyOfRange(input, 0, iP);
     }
 
     public static void main(String[] args) {
         // String input = "zzzzzipzip";
-        String input = "aabbabbbasdasb";
+        // String input = "aabbabbbasdasb";
 
-        // String input =
-        // "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
+        String input = "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
 
         TtoG(input);
     }
