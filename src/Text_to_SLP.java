@@ -1,8 +1,13 @@
 import java.util.*;
+
+import javax.swing.plaf.synth.SynthSpinnerUI;
+
 import java.io.*;
 import java.lang.reflect.Array;
 
 public class Text_to_SLP {
+    public static Queue<String> fresh_letters;
+
     /**
      * 
      * @param args
@@ -41,55 +46,57 @@ public class Text_to_SLP {
                 end[curIdx - 1] = 1;
             }
         }
-        System.out.println("Start: " + Arrays.toString(start));
-        System.out.println("End: " + Arrays.toString(end));
-        System.out.println("------------------------------");
 
-        System.out.println("------------------------------");
-        while (input.length() > 1) {
+        fresh_letters = new LinkedList<>();
+        for (int f = 0; f < w; f++) {
+            System.out.println("A" + Integer.toString(f));
+            fresh_letters.add("A" + Integer.toString(f));
+        }
+
+        String[] input_array = input.split("");
+
+        // Main loop
+        while (input_array.length > 1) {
             // Compute a pairing of w using Pairing()
-            Pairing(input, start, end, pair);
+            Pairing(input_array, start, end, pair);
 
             // Replace the pairs using PairReplacement()
-            PairReplacement(input, start, end, pair);
+            input_array = PairReplacement(input_array, start, end, pair);
+            System.out.println("Pairing: input: " + String.join("", input_array));
+
         }
         // Return the constructed grammar
 
     }
 
-    public static void Pairing(String input, int[] start, int[] end, int[] pair) {
-        System.out.println("Start: " + Arrays.toString(start));
-        System.out.println("End: " + Arrays.toString(end));
-        System.out.println("Pair: " + Arrays.toString(pair));
-        int w = input.length();
-        System.out.println("Pairing: input length: " + w);
+    public static void Pairing(String[] input, int[] start, int[] end, int[] pair) {
+        int w = input.length;
+        System.out.println("Pairing: input: " + String.join("", input));
+        // System.out.println("Start: " + Arrays.toString(start));
+        // System.out.println("End: " + Arrays.toString(end));
+        // System.out.println("Pair: " + Arrays.toString(pair));
 
+        if (start[0] != -1) {
+            if (end[0] == 1) {
+                start[0] = end[0] = -1;
+            }
+        }
         int i = 1;
-
         int j = 0;
         pair[0] = 0;
         while (i < w) {
-            System.out.println(i);
             if (start[i] != -1) { // w[i] is the first element of a factor
                 if (end[i] == 1) { // This is a one-letter factor
-                    System.out.println("one letter factor");
                     start[i] = end[i] = -1; // Turn this letter into a free letter
                 } else if (start[i] == i - 1) { // the factor is a^k, its definition begins one position to the left
-                    System.out.println("a^k");
                     start[i + 1] = i - 1; // Move the definition of the factor
                     start[i] = -1; // make w[i] a free letter
                 } else if (pair[start[i]] != 1) { // The pairing of the definition of factor is bad:
-                    System.out.println("bad factor");
                     start[i + 1] = start[i] + 1; // shorten the factor definition by 1 on the left
                     start[i] = -1; // make a free letter
                 } else { // Good factor
-                    System.out.println("good factor");
-                    System.out.println("j is :" + start[i]);
                     j = start[i]; // factor's definition starts at position j
                     do { // copy the pairing from the factor definition
-                        System.out.println("pair is " + pair[j]);
-                        System.out.println("end is " + end[i]);
-
                         pair[i] = pair[j];
                         i++;
                         j++;
@@ -103,8 +110,6 @@ public class Text_to_SLP {
                 }
             }
             if (start[i] == -1) { // w[i] is a free letter
-                System.out.println("a free letter");
-
                 if (pair[i - 1] == 0) { // if previous letter is not paired
                     pair[i - 1] = 1; // pair them
                     pair[i] = 2;
@@ -118,32 +123,34 @@ public class Text_to_SLP {
         return;
     }
 
-    public static void PairReplacement(String input, int[] start, int[] end, int[] pair) {
-        System.out.println("Start: " + Arrays.toString(start));
-        System.out.println("End: " + Arrays.toString(end));
-        System.out.println("Pair: " + Arrays.toString(pair));
-        char[] new_word = new char[input.length()];
-        char[] input_word = input.toCharArray();
+    public static String[] PairReplacement(String[] input, int[] start, int[] end, int[] pair) {
+        System.out.println("Replace: ----------------------------------");
 
-        int[] newpos = new int[input.length()]; //
+        // System.out.println("Start: " + Arrays.toString(start));
+        // System.out.println("End: " + Arrays.toString(end));
+        // System.out.println("Pair: " + Arrays.toString(pair));
+        System.out.println("================" + String.join("", input));
+
+        int[] newpos = new int[input.length]; //
         Arrays.fill(newpos, -1);
 
         int i = 0;
         int iP = 0; // iP is the position corresponding to i in the new word
         int jP = 0;
-        while (i < input.length()) {
+        while (i < input.length) {
 
             System.out.println("i = " + i);
             if (start[i] != -1) { // w[i] is the first element of a factor
-                System.out.println("not a free letter");
 
-                start[iP] = jP = newpos[start[i]]; // factor in the new word begins at the position corresponding to the
-
+                start[iP] = newpos[start[i]];
+                jP = newpos[start[i]]; // factor in the new word begins at the position corresponding to the
                 // beginning of the current factor
                 start[i] = -1;
+
                 do {
                     newpos[i] = iP; // position corresponding to i
-                    new_word[iP] = input_word[jP]; // copy the letter according to new factorization
+                    input[iP] = input[jP]; // copy the letter according to new factorization
+                    System.out.println(String.join("", input));
                     iP++;
                     jP++;
                     if (pair[i] == 1) {
@@ -156,38 +163,25 @@ public class Text_to_SLP {
                 end[i - 1] = -1; // Clearing obsolete info
             }
             if (start[i] == -1) { // w[i] is a free letter
-                System.out.println("free letter");
                 newpos[i] = iP;
                 if (pair[i] == 0) {
-                    new_word[iP] = input_word[i]; // copy the unpaired letter
+                    input[iP] = input[i]; // copy the unpaired letter
                     i++; // move to the right by the whole pair
                     iP++;
                 } else {
-                    System.out.println("replace");
-                    new_word[iP] = 'A'; // Paired free letters are replaced by a fresh letter
+                    input[iP] = fresh_letters.remove(); // Paired free letters are replaced by a fresh letter
                     i += 2;
                     iP += 1;
                 }
             }
         }
-        input = String.valueOf(new_word);
-        System.out.println("input is: " + input);
-        return;
-
-    }
-
-    /**
-     * Generate fresh letters for grammar
-     * 
-     * @param w number of fresh letters
-     */
-    private static void freshLetter(int w) {
-
+        // trim and return the input
+        return Arrays.copyOfRange(input, 0, iP);
     }
 
     public static void main(String[] args) {
-        String input = "zzzzzipzip";
-        // String input = "aabbabbbasdasb";
+        // String input = "zzzzzipzip";
+        String input = "aabbabbbasdasb";
 
         // String input =
         // "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
