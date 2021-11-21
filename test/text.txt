@@ -5,13 +5,7 @@ zzzzzipzip: 10
 fac: (z, 0)(0, 4)(i, 0)(p, 0)(4, 3) 
 Start: [0, 0, -1, -1, -1, 5, 6, 4, -1, -1]
 End:   [1, -1, -1, -1, 1, 1, 1, -1, -1, 1]
-Pairing:
-Start: [-1, -1, 0, -1, -1, -1, -1, 4, -1, -1]
-End:   [-1, -1, -1, 1, -1, -1, -1, -1, 1, -1]
-Pair: [1, 2, 1, 2, 1, 2, 0, 1, 2, 0]
-new fac: z z (zz) z i p (zi) p 
-Replace:
-AAApAp
+TotalMilliseconds : 104.1026
 
 
 "In the course of the last four months it has been made probable – through the work of Joliot in France as well as Fermi and Szilard in America – that it may become possible to set up a nuclear chain reaction in a large mass of uranium, by which vast amounts of power and large quantities of new radium-like elements would be generated. Now it appears almost certain that this could be achieved in the immediate future.
@@ -25,6 +19,10 @@ End:   [1, 1, 1, 1, -1, -1,  1, -1,  1, 1, 1, -1,  1, 1]
 Start: [0, -1, -1, -1, -1,  2, -1, -1, -1, -1, -1, -1, -1, -1]
 End:   [1, -1, -1, -1, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1]
 Pair:  [1,  2,  1,  2,  0,  1,  2,  1,  2,  1,  2,  1,  2,  0]
+TotalMilliseconds : 105.1064
 
-aabbAAAbasdasb
-
+128random
+TotalMilliseconds : 134.2801 (arraylist)
+TotalMilliseconds : 106.404 (map)
+TotalMilliseconds : 112.3068 (map)
+TotalMilliseconds : 109.9495 (map)

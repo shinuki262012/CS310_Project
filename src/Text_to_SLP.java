@@ -1,12 +1,25 @@
-import java.util.*;
-
-import javax.swing.plaf.synth.SynthSpinnerUI;
-
 import java.io.*;
+// import java.util.*;
+import java.util.Queue;
+import java.util.TreeMap;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map; // to store the grammar
+import java.util.HashMap;
+
+/**
+ * int -> long
+ * 
+ *
+ * 
+ */
 
 public class Text_to_SLP {
     public static Queue<String> fresh_letters;
-    public static ArrayList<Pair<String, String>> grammar; // resulting grammar
+    public static Map<String, String> grammar = new HashMap<String, String>(); // resulting grammar
+    public static TreeMap<String, String> g;
 
     /**
      * Text to Grammar
@@ -14,7 +27,7 @@ public class Text_to_SLP {
      * @param input String input
      * @return An array list representation of the grammar
      */
-    public static ArrayList<Pair<String, String>> TtoG(String input) {
+    public static Map<String, String> TtoG(String input) {
         int w = input.length();
         // Compute the LZ77 factorization of the input
         Factorization fac = new Factorization();
@@ -51,15 +64,42 @@ public class Text_to_SLP {
         }
 
         fresh_letters = new LinkedList<>();
-        grammar = new ArrayList<>();
-        // TODO:
-        // Cosntruct the fresh letters, in the form of Ai, where i is an interger
-        for (int f = 0; f < w; f++) {
-            System.out.println("A" + Integer.toString(f) + " ");
-            fresh_letters.add("X" + Integer.toString(f) + " ");
+        String[] alphabets = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R",
+                "S", "T", "U", "V", "W", "X", "Y", "Z" };
+
+        // TODO for large files?
+        // 26 letters * 2^32?
+        // Cosntruct the fresh letters, in the form of Xi, where i is an interger
+        for (int f = 0; f < 2 * w; f++) {
+            int n = (int) f / 26;
+            System.out.println(alphabets[f % 26] + Integer.toString(n));
+            fresh_letters.add(alphabets[f % 26] + Integer.toString(n));
         }
 
         String[] input_array = input.split("");
+
+        // Add rules for all terminals
+        Map<String, String> terminalRules = new HashMap<String, String>(); // rules of form X -> a
+        for (int i = 0; i < input_array.length; i++) {
+            // Check if the character has appeared in the grammar
+            if (terminalRules.get(input_array[i]) == null) {
+                // Add a grammar rule
+                String nonTerminal = fresh_letters.remove();
+                terminalRules.put(input_array[i], nonTerminal);
+                input_array[i] = nonTerminal;
+            } else {
+                // replace the character with the nonterminal
+                input_array[i] = terminalRules.get(input_array[i]);
+            }
+        }
+
+        System.out.println(terminalRules.toString());
+        // Reverse the terminal rules
+        for (Map.Entry<String, String> rule : terminalRules.entrySet()) {
+            grammar.put(rule.getValue(), rule.getKey());
+        }
+        String tRules = grammar.toString();
+        System.out.println(tRules);
 
         // Main loop
         while (input_array.length > 1) {
@@ -69,19 +109,35 @@ public class Text_to_SLP {
             // Replace the pairs using PairReplacement()
             input_array = PairReplacement(input_array, start, end, pair);
             System.out.println("Pairing: input: " + String.join("", input_array));
-
         }
 
         // Set the start symbol to S
-        grammar.set(grammar.size() - 1, grammar.get(grammar.size() - 1).setFirst("S"));
-        // Print grammar
-        System.out.println("Grammar: ");
-        for (int j = 0; j < grammar.size(); j++) {
-            System.out.println(grammar.get(j).first + "-->" + grammar.get(j).second);
+        String start_symbol;
+        String last_letter = fresh_letters.remove();
+        System.out.println("last leter is :" + last_letter);
+        char letter = last_letter.charAt(0);
+        String number = last_letter.substring(1);
+        // The previous one of An is Zn-1
+        if (letter == 'A') {
+            Integer n = Integer.valueOf(number);
+            int n1 = (int) n;
+            start_symbol = "Z" + Integer.toString(n1 - 1);
+            System.out.println(start_symbol);
+        }
+        // The previous of Bn is An
+        else {
+            int ascii = (int) letter;
+            start_symbol = ((char) (ascii - 1)) + number;
+            System.out.println(start_symbol);
         }
 
+        // Change the start symbol to S
+        grammar.put("S", grammar.get(start_symbol));
+        grammar.remove(start_symbol);
+
+        // Print grammar
+        System.out.println(grammar.toString());
         // Return the constructed grammar
-        grammar = chomsky_normal_form(grammar);
         return grammar;
     }
 
@@ -173,10 +229,7 @@ public class Text_to_SLP {
                     jP++;
                     if (pair[i] == 1) {
                         i += 2; // move left by the whole pair
-                        System.out.println("i = " + i + ", input[i] = " + input[i]);
-
                     } else {
-                        System.out.println("there");
                         i++; // move left by the unpaired letter
                     }
                 } while (end[i - 1] == -1);
@@ -195,28 +248,21 @@ public class Text_to_SLP {
                     System.out.println("Replace 2 free letters by: " + nonTerminal + ": " + rhs);
                     inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
                     // Record the grammar ruls
-                    Pair<String, String> rule = new Pair(nonTerminal, rhs);
                     System.out.println("1 input: " + String.join("", input));
-                    grammar.add(rule);
+                    grammar.put(nonTerminal, rhs);
                     i += 2;
                     iP += 1;
                 }
             }
         }
-        // trim and return the new word
         return Arrays.copyOfRange(inputP, 0, iP);
-    }
-
-    public static ArrayList<Pair<String, String>> chomsky_normal_form(ArrayList<Pair<String, String>> grammar) {
-
-        return grammar;
     }
 
     public static void main(String[] args) {
         String input = "zzzzzipzip";
         // String input = "aabbabbbasdasb";
+        // String input = "aabbabbbasdaassbacdgkl"; // tests Z0 as the start symbol
         // String input = "this is a test string";
-
         // String input =
         // "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
 

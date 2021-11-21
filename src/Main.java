@@ -10,7 +10,6 @@ public class Main {
      */
     public static void main(String[] args) {
         menu();
-
     }
 
     /**
@@ -52,6 +51,7 @@ public class Main {
                 System.out.println("Please enter a valid option.\n");
                 break;
             }
+            break;
         }
     }
 }
