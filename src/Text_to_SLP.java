@@ -19,7 +19,6 @@ import java.util.HashMap;
 public class Text_to_SLP {
     public static Queue<String> fresh_letters;
     public static Map<String, Pair<String, String>> grammar = new HashMap<String, Pair<String, String>>(); // resulting
-                                                                                                           // grammar
 
     /**
      * Text to Grammar
@@ -141,6 +140,13 @@ public class Text_to_SLP {
             System.out.println(rule.getKey() + "->" + rule.getValue().first + ", " + rule.getValue().second);
         }
 
+        // Check grammar by decompressing and compare
+        SLP_to_text decompresser = new SLP_to_text();
+        String decompressed_string = decompresser.GtoT(grammar);
+        System.out.println(decompressed_string);
+        if (decompressed_string.equals(input))
+            System.out.println("YES");
+
         // Return the constructed grammar
         return grammar;
     }
@@ -249,6 +255,8 @@ public class Text_to_SLP {
                 } else {
                     String nonTerminal = fresh_letters.remove();
                     Pair<String, String> rhs = new Pair<String, String>(input[i], input[i + 1]);
+                    BinaryTreeNode<String> node = new BinaryTreeNode<String>(nonTerminal);
+                    node.setLeft()
                     inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
                     System.out.println("1 input: " + String.join("", input));
                     // Record the grammar ruls
