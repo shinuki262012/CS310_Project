@@ -18,8 +18,8 @@ import java.util.HashMap;
 
 public class Text_to_SLP {
     public static Queue<String> fresh_letters;
-    public static Map<String, String> grammar = new HashMap<String, String>(); // resulting grammar
-    public static TreeMap<String, String> g;
+    public static Map<String, Pair<String, String>> grammar = new HashMap<String, Pair<String, String>>(); // resulting
+                                                                                                           // grammar
 
     /**
      * Text to Grammar
@@ -27,7 +27,7 @@ public class Text_to_SLP {
      * @param input String input
      * @return An array list representation of the grammar
      */
-    public static Map<String, String> TtoG(String input) {
+    public static Map<String, Pair<String, String>> TtoG(String input) {
         int w = input.length();
         // Compute the LZ77 factorization of the input
         Factorization fac = new Factorization();
@@ -96,7 +96,8 @@ public class Text_to_SLP {
         System.out.println(terminalRules.toString());
         // Reverse the terminal rules
         for (Map.Entry<String, String> rule : terminalRules.entrySet()) {
-            grammar.put(rule.getValue(), rule.getKey());
+            Pair<String, String> rhs = new Pair<String, String>(rule.getKey(), "");
+            grammar.put(rule.getValue(), rhs);
         }
         String tRules = grammar.toString();
         System.out.println(tRules);
@@ -136,7 +137,10 @@ public class Text_to_SLP {
         grammar.remove(start_symbol);
 
         // Print grammar
-        System.out.println(grammar.toString());
+        for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
+            System.out.println(rule.getKey() + "->" + rule.getValue().first + ", " + rule.getValue().second);
+        }
+
         // Return the constructed grammar
         return grammar;
     }
@@ -244,11 +248,10 @@ public class Text_to_SLP {
                     iP++;
                 } else {
                     String nonTerminal = fresh_letters.remove();
-                    String rhs = input[i] + input[i + 1];
-                    System.out.println("Replace 2 free letters by: " + nonTerminal + ": " + rhs);
+                    Pair<String, String> rhs = new Pair<String, String>(input[i], input[i + 1]);
                     inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
-                    // Record the grammar ruls
                     System.out.println("1 input: " + String.join("", input));
+                    // Record the grammar ruls
                     grammar.put(nonTerminal, rhs);
                     i += 2;
                     iP += 1;

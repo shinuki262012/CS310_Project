@@ -16,4 +16,10 @@ public final class Pair<V1, V2> {
         first = v;
         return this;
     }
+
+    public Pair setSecond(V2 v) {
+        second = v;
+        return this;
+    }
+
 }
