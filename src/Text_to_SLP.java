@@ -1,4 +1,7 @@
 import java.util.*;
+
+import javax.swing.plaf.synth.SynthSpinnerUI;
+
 import java.io.*;
 
 public class Text_to_SLP {
@@ -6,8 +9,10 @@ public class Text_to_SLP {
     public static ArrayList<Pair<String, String>> grammar; // resulting grammar
 
     /**
+     * Text to Grammar
      * 
-     * @param args
+     * @param input String input
+     * @return An array list representation of the grammar
      */
     public static ArrayList<Pair<String, String>> TtoG(String input) {
         int w = input.length();
@@ -29,6 +34,7 @@ public class Text_to_SLP {
 
         // Populate tables with the factorization
         int curIdx = 0;
+        System.out.println("LZ77 factorization size: " + factorization.size());
         for (int i = 0; i < factorization.size(); i++) {
             int first = factorization.get(i).first;
             int second = factorization.get(i).second;
@@ -50,7 +56,7 @@ public class Text_to_SLP {
         // Cosntruct the fresh letters, in the form of Ai, where i is an interger
         for (int f = 0; f < w; f++) {
             System.out.println("A" + Integer.toString(f) + " ");
-            fresh_letters.add("A" + Integer.toString(f) + " ");
+            fresh_letters.add("X" + Integer.toString(f) + " ");
         }
 
         String[] input_array = input.split("");
@@ -71,10 +77,11 @@ public class Text_to_SLP {
         // Print grammar
         System.out.println("Grammar: ");
         for (int j = 0; j < grammar.size(); j++) {
-            System.out.println(grammar.get(j).first + " -> " + grammar.get(j).second);
+            System.out.println(grammar.get(j).first + "-->" + grammar.get(j).second);
         }
 
         // Return the constructed grammar
+        grammar = chomsky_normal_form(grammar);
         return grammar;
     }
 
@@ -134,6 +141,8 @@ public class Text_to_SLP {
 
     public static String[] PairReplacement(String[] input, int[] start, int[] end, int[] pair) {
         System.out.println("Replace: ----------------------------------");
+        // TODO space complexity increased
+        String[] inputP = new String[input.length]; // the new word after replacing the pairing
 
         // System.out.println("Start: " + Arrays.toString(start));
         // System.out.println("End: " + Arrays.toString(end));
@@ -148,7 +157,7 @@ public class Text_to_SLP {
         int jP = 0;
         while (i < input.length) {
 
-            System.out.println("i = " + i);
+            System.out.println("i = " + i + ", input[i] = " + input[i]);
             if (start[i] != -1) { // w[i] is the first element of a factor
 
                 start[iP] = newpos[start[i]];
@@ -158,13 +167,16 @@ public class Text_to_SLP {
 
                 do {
                     newpos[i] = iP; // position corresponding to i
-                    input[iP] = input[jP]; // copy the letter according to new factorization
-                    System.out.println(String.join("", input));
+                    inputP[iP] = inputP[jP]; // copy the letter according to new factorization
+                    System.out.println("copy the  : " + String.join("", input));
                     iP++;
                     jP++;
                     if (pair[i] == 1) {
                         i += 2; // move left by the whole pair
+                        System.out.println("i = " + i + ", input[i] = " + input[i]);
+
                     } else {
+                        System.out.println("there");
                         i++; // move left by the unpaired letter
                     }
                 } while (end[i - 1] == -1);
@@ -174,16 +186,17 @@ public class Text_to_SLP {
             if (start[i] == -1) { // w[i] is a free letter
                 newpos[i] = iP;
                 if (pair[i] == 0) {
-                    input[iP] = input[i]; // copy the unpaired letter
-                    i++; // move to the right by the whole pair
+                    inputP[iP] = input[i]; // copy the unpaired letter
+                    i++; // move by this letter to the right
                     iP++;
                 } else {
                     String nonTerminal = fresh_letters.remove();
-                    String rhs = input[iP] + input[iP + 1];
-                    System.out.println(nonTerminal + rhs);
-                    input[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
+                    String rhs = input[i] + input[i + 1];
+                    System.out.println("Replace 2 free letters by: " + nonTerminal + ": " + rhs);
+                    inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
                     // Record the grammar ruls
                     Pair<String, String> rule = new Pair(nonTerminal, rhs);
+                    System.out.println("1 input: " + String.join("", input));
                     grammar.add(rule);
                     i += 2;
                     iP += 1;
@@ -191,14 +204,21 @@ public class Text_to_SLP {
             }
         }
         // trim and return the new word
-        return Arrays.copyOfRange(input, 0, iP);
+        return Arrays.copyOfRange(inputP, 0, iP);
+    }
+
+    public static ArrayList<Pair<String, String>> chomsky_normal_form(ArrayList<Pair<String, String>> grammar) {
+
+        return grammar;
     }
 
     public static void main(String[] args) {
-        // String input = "zzzzzipzip";
+        String input = "zzzzzipzip";
         // String input = "aabbabbbasdasb";
+        // String input = "this is a test string";
 
-        String input = "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
+        // String input =
+        // "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
 
         TtoG(input);
     }

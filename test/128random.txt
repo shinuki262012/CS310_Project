@@ -1,0 +1,125 @@
+"cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj"
+
+Grammar:
+A0  -> cb
+A1  -> bs
+A2  -> sd
+A3  -> dr
+A4  -> rg
+A5  -> gk
+A6  -> ks
+A7  -> sj
+A8  -> ji
+A9  -> iz
+A10  -> zq
+A11  -> qh
+A12  -> hr
+A13  -> ry
+A14  -> yl
+A15  -> ls
+A16  -> sg
+A17  -> gs
+A18  -> st
+A19  -> tz
+A20  -> zy
+A21  -> jq
+A22  -> qp
+A23  -> pw
+A24  -> wk
+A25  -> kv
+A26  -> vt
+A27  -> te
+A28  -> ep
+A29  -> pb
+A30  -> bp
+A31  -> pq
+A32  -> qk
+A33  -> yd
+A34  -> dw
+A35  -> wl
+A36  -> lr
+A37  -> rk
+A38  -> kx
+A39  -> xt
+A40  -> te
+A41  -> ma
+A42  -> aj
+A43  -> ja
+A44  -> av
+A45  -> vl
+A46  -> lw
+A47  -> wi
+A48  -> io
+A49  -> oo
+A50  -> ox
+A51  -> xg
+A52  -> gz
+A53  -> zo
+A54  -> hf
+A55  -> fe
+A56  -> eg
+A57  -> kf
+A58  -> A0 A1
+A59  -> A1 A2
+A60  -> A2 A3
+A61  -> A3 A4
+A62  -> A4 A5
+A63  -> A5 A6
+A64  -> A6 A7
+A65  -> A7 A8
+A66  -> A8 A9
+A67  -> A9 A10
+A68  -> A10 A11
+A69  -> A11 A12
+A70  -> A12 A13
+A71  -> A13 A14
+A72  -> A14 A15
+A73  -> A15 A16
+A74  -> A16 A17
+A75  -> A17 A18
+A76  -> A18 A19
+A77  -> A19 A20
+A78  -> A20 A14
+A79  -> A14 A21
+A80  -> A21 A22
+A81  -> A22 A23
+A82  -> A23 A24
+A83  -> A24 A25
+A84  -> A25 A26
+A85  -> A26 A27
+A86  -> A27 A28
+A87  -> A28 A29
+A88  -> A29 A30
+A89  -> A30 A31
+A90  -> A58 A59
+A91  -> A59 A60
+A92  -> A60 A61
+A93  -> A61 A62
+A94  -> A62 A63
+A95  -> A63 A64
+A96  -> A64 A65
+A97  -> A65 A66
+A98  -> A66 A67
+A99  -> A67 A68
+A100  -> A68 A69
+A101  -> A69 A70
+A102  -> A70 A71
+A103  -> A71 A72
+A104  -> A72 A73
+A105  -> A73 A74
+A106  -> A90 A91
+A107  -> A91 A92
+A108  -> A92 A93
+A109  -> A93 A94
+A110  -> A94 A95
+A111  -> A95 A96
+A112  -> A96 A97
+A113  -> A97 A98
+A114  -> A106 A107
+A115  -> A107 A108
+A116  -> A108 A109
+A117  -> A109 A110
+A118  -> A114 A115 
+A119  -> A115 A116
+A120  -> A118 A119
+S -> A120 j
