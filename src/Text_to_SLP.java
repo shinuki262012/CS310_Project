@@ -255,8 +255,6 @@ public class Text_to_SLP {
                 } else {
                     String nonTerminal = fresh_letters.remove();
                     Pair<String, String> rhs = new Pair<String, String>(input[i], input[i + 1]);
-                    BinaryTreeNode<String> node = new BinaryTreeNode<String>(nonTerminal);
-                    node.setLeft()
                     inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
                     System.out.println("1 input: " + String.join("", input));
                     // Record the grammar ruls
@@ -270,12 +268,11 @@ public class Text_to_SLP {
     }
 
     public static void main(String[] args) {
-        String input = "zzzzzipzip";
+        // String input = "zzzzzipzip";
         // String input = "aabbabbbasdasb";
         // String input = "aabbabbbasdaassbacdgkl"; // tests Z0 as the start symbol
         // String input = "this is a test string";
-        // String input =
-        // "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
+        String input = "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
 
         TtoG(input);
     }

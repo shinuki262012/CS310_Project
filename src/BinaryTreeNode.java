@@ -40,4 +40,18 @@ public class BinaryTreeNode<E extends Comparable<E>> {
         right = p;
     }
 
+    public void toString(String prefix, boolean isLeft) {
+        if (this.left != null) {
+            if (this.right != null) {
+                System.out.println(prefix + (isLeft ? "|-" : "\\-") + value);
+                left.toString(prefix + (isLeft ? "| " : "  "), true);
+                right.toString(prefix + (isLeft ? "| " : "  "), false);
+            } else {
+                System.out.println(prefix + (isLeft ? "|-" : "\\-") + value);
+                left.toString(prefix + (isLeft ? "| " : "  "), true);
+            }
+        } else {
+            System.out.println(prefix + (isLeft ? "|-" : "\\-") + value);
+        }
+    }
 }
