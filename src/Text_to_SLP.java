@@ -10,7 +10,7 @@ import java.util.Map; // to store the grammar
 import java.util.HashMap;
 
 /**
- * int -> long
+ * TODO: int -> long
  * 
  *
  * 
@@ -33,20 +33,20 @@ public class Text_to_SLP {
         ArrayList<Pair<Integer, Integer>> factorization = fac.factorization(input);
         // Initialise tables start, end and pair
         int[] start = new int[w]; // stores beginning of factors, -1::not the beginning of a factor
-        int[] end = new int[w]; // stores ends of factors: whether w[i] is the last letter of a factor, 1/-1
+        int[] end = new int[w]; // stores ends of factors: 1/-1 -> whether w[i] is the last letter of a factor
         int[] pair = new int[w]; // stores pairing, 0: unpaired; 1: first in a pair; 2: second in a pair
         Arrays.fill(start, -1);
         Arrays.fill(end, -1);
         Arrays.fill(pair, 0);
-        System.out.println(" ");
-        System.out.println("Start: " + Arrays.toString(start));
-        System.out.println("End: " + Arrays.toString(end));
-        System.out.println("Pair: " + Arrays.toString(pair));
-        System.out.println("------------------------------");
+        // System.out.println(" ");
+        // System.out.println("Start: " + Arrays.toString(start));
+        // System.out.println("End: " + Arrays.toString(end));
+        // System.out.println("Pair: " + Arrays.toString(pair));
+        // System.out.println("------------------------------");
 
         // Populate tables with the factorization
         int curIdx = 0;
-        System.out.println("LZ77 factorization size: " + factorization.size());
+        // System.out.println("LZ77 factorization size: " + factorization.size());
         for (int i = 0; i < factorization.size(); i++) {
             int first = factorization.get(i).first;
             int second = factorization.get(i).second;
@@ -71,7 +71,7 @@ public class Text_to_SLP {
         // Cosntruct the fresh letters, in the form of Xi, where i is an interger
         for (int f = 0; f < 2 * w; f++) {
             int n = (int) f / 26;
-            System.out.println(alphabets[f % 26] + Integer.toString(n));
+            // System.out.println(alphabets[f % 26] + Integer.toString(n));
             fresh_letters.add(alphabets[f % 26] + Integer.toString(n));
         }
 
@@ -92,14 +92,14 @@ public class Text_to_SLP {
             }
         }
 
-        System.out.println(terminalRules.toString());
+        // System.out.println(terminalRules.toString());
         // Reverse the terminal rules
         for (Map.Entry<String, String> rule : terminalRules.entrySet()) {
             Pair<String, String> rhs = new Pair<String, String>(rule.getKey(), "");
             grammar.put(rule.getValue(), rhs);
         }
         String tRules = grammar.toString();
-        System.out.println(tRules);
+        // System.out.println(tRules);
 
         // Main loop
         while (input_array.length > 1) {
@@ -108,13 +108,13 @@ public class Text_to_SLP {
 
             // Replace the pairs using PairReplacement()
             input_array = PairReplacement(input_array, start, end, pair);
-            System.out.println("Pairing: input: " + String.join("", input_array));
+            // System.out.println("Pairing: input: " + String.join("", input_array));
         }
 
         // Set the start symbol to S
         String start_symbol;
         String last_letter = fresh_letters.remove();
-        System.out.println("last leter is :" + last_letter);
+        // System.out.println("last leter is :" + last_letter);
         char letter = last_letter.charAt(0);
         String number = last_letter.substring(1);
         // The previous one of An is Zn-1
@@ -122,13 +122,13 @@ public class Text_to_SLP {
             Integer n = Integer.valueOf(number);
             int n1 = (int) n;
             start_symbol = "Z" + Integer.toString(n1 - 1);
-            System.out.println(start_symbol);
+            // System.out.println(start_symbol);
         }
         // The previous of Bn is An
         else {
             int ascii = (int) letter;
             start_symbol = ((char) (ascii - 1)) + number;
-            System.out.println(start_symbol);
+            // System.out.println(start_symbol);
         }
 
         // Change the start symbol to S
@@ -136,16 +136,19 @@ public class Text_to_SLP {
         grammar.remove(start_symbol);
 
         // Print grammar
+        String output = "";
         for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
+            // output = output + rule.getKey() + "->" + rule.getValue().first + " " +
+            // rule.getValue().second + "\n";
             System.out.println(rule.getKey() + "->" + rule.getValue().first + ", " + rule.getValue().second);
         }
 
         // Check grammar by decompressing and compare
-        SLP_to_text decompresser = new SLP_to_text();
-        String decompressed_string = decompresser.GtoT(grammar);
-        System.out.println(decompressed_string);
-        if (decompressed_string.equals(input))
-            System.out.println("YES");
+        // SLP_to_text decompresser = new SLP_to_text();
+        // String decompressed_string = decompresser.GtoT(grammar);
+        // System.out.println(decompressed_string);
+        // if (decompressed_string.equals(input))
+        // System.out.println("YES");
 
         // Return the constructed grammar
         return grammar;
@@ -153,7 +156,7 @@ public class Text_to_SLP {
 
     public static void Pairing(String[] input, int[] start, int[] end, int[] pair) {
         int w = input.length;
-        System.out.println("Pairing: input: " + String.join("", input));
+        // System.out.println("Pairing: input: " + String.join("", input));
         // System.out.println("Start: " + Arrays.toString(start));
         // System.out.println("End: " + Arrays.toString(end));
         // System.out.println("Pair: " + Arrays.toString(pair));
@@ -206,14 +209,14 @@ public class Text_to_SLP {
     }
 
     public static String[] PairReplacement(String[] input, int[] start, int[] end, int[] pair) {
-        System.out.println("Replace: ----------------------------------");
+        // System.out.println("Replace: ----------------------------------");
         // TODO space complexity increased
         String[] inputP = new String[input.length]; // the new word after replacing the pairing
 
         // System.out.println("Start: " + Arrays.toString(start));
         // System.out.println("End: " + Arrays.toString(end));
         // System.out.println("Pair: " + Arrays.toString(pair));
-        System.out.println("================" + String.join("", input));
+        // System.out.println("================" + String.join("", input));
 
         int[] newpos = new int[input.length]; //
         Arrays.fill(newpos, -1);
@@ -223,7 +226,7 @@ public class Text_to_SLP {
         int jP = 0;
         while (i < input.length) {
 
-            System.out.println("i = " + i + ", input[i] = " + input[i]);
+            // System.out.println("i = " + i + ", input[i] = " + input[i]);
             if (start[i] != -1) { // w[i] is the first element of a factor
 
                 start[iP] = newpos[start[i]];
@@ -234,7 +237,7 @@ public class Text_to_SLP {
                 do {
                     newpos[i] = iP; // position corresponding to i
                     inputP[iP] = inputP[jP]; // copy the letter according to new factorization
-                    System.out.println("copy the  : " + String.join("", input));
+                    // System.out.println("copy the : " + String.join("", input));
                     iP++;
                     jP++;
                     if (pair[i] == 1) {
@@ -256,7 +259,7 @@ public class Text_to_SLP {
                     String nonTerminal = fresh_letters.remove();
                     Pair<String, String> rhs = new Pair<String, String>(input[i], input[i + 1]);
                     inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
-                    System.out.println("1 input: " + String.join("", input));
+                    // System.out.println("1 input: " + String.join("", input));
                     // Record the grammar ruls
                     grammar.put(nonTerminal, rhs);
                     i += 2;

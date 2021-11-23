@@ -19,9 +19,9 @@ public class Factorization {
         // Compute the suffix array of the string input
         Skew SA = new Skew();
         int[] suffixArray = SA.buildSuffixArray(array, 0, input.length());
-        for (int i = 0; i < suffixArray.length; i++) {
-            System.out.println(Integer.toString(suffixArray[i]));
-        }
+        // for (int i = 0; i < suffixArray.length; i++) {
+        // System.out.println(Integer.toString(suffixArray[i]));
+        // }
 
         // Trim the suffix array
         int[] suffix_array = Arrays.copyOfRange(suffixArray, 0, input.length());
@@ -29,17 +29,17 @@ public class Factorization {
         ArrayList<Pair<Integer, Integer>> F = new ArrayList<Pair<Integer, Integer>>();
         byte[] X = input.getBytes();
         int result = kkp2(X, suffix_array, input.length(), F);
-        System.out.println(result);
+        // System.out.println(result);
         // Print the factorization
         for (int i = 0; i < F.size(); i++) {
             int first = F.get(i).first;
             int second = F.get(i).second;
-            if (second == 0) { // if first can be converted to a ASCII char
-                char letter = (char) first;
-                System.out.print("(" + letter + ", " + F.get(i).second + ")");
-            } else {
-                System.out.print("(" + first + ", " + F.get(i).second + ")");
-            }
+            // if (second == 0) { // if first can be converted to a ASCII char
+            // char letter = (char) first;
+            // System.out.print("(" + letter + ", " + F.get(i).second + ")");
+            // } else {
+            // System.out.print("(" + first + ", " + F.get(i).second + ")");
+            // }
         }
 
         return F;

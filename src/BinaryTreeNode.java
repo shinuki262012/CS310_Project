@@ -1,3 +1,5 @@
+import javax.swing.plaf.synth.SynthSpinnerUI;
+
 public class BinaryTreeNode<E extends Comparable<E>> {
 
     private E value;
@@ -43,15 +45,20 @@ public class BinaryTreeNode<E extends Comparable<E>> {
     public void toString(String prefix, boolean isLeft) {
         if (this.left != null) {
             if (this.right != null) {
-                System.out.println(prefix + (isLeft ? "|-" : "\\-") + value);
+                System.out.println(prefix + (isLeft ? "|--" : "`--") + value);
                 left.toString(prefix + (isLeft ? "| " : "  "), true);
                 right.toString(prefix + (isLeft ? "| " : "  "), false);
             } else {
-                System.out.println(prefix + (isLeft ? "|-" : "\\-") + value);
+                System.out.println(prefix + (isLeft ? "|--" : "`--") + value);
                 left.toString(prefix + (isLeft ? "| " : "  "), true);
             }
         } else {
-            System.out.println(prefix + (isLeft ? "|-" : "\\-") + value);
+            if (String.valueOf(value).equals("\n"))
+                System.out.println(prefix + (isLeft ? "|____" : "`--") + "\\n");
+            else if (String.valueOf(value).equals(" "))
+                System.out.println(prefix + (isLeft ? "|____" : "`--") + "' '");
+            else
+                System.out.println(prefix + (isLeft ? "|____" : "`--") + value);
         }
     }
 }

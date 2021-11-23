@@ -1,7 +1,12 @@
 import java.util.*;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class Main {
+
+    static Scanner input;
+    static Text_to_SLP SLP;
 
     /**
      * Display the main menu
@@ -9,6 +14,7 @@ public class Main {
      * @param args
      */
     public static void main(String[] args) {
+        input = new Scanner(System.in);
         menu();
     }
 
@@ -37,6 +43,7 @@ public class Main {
             switch (op) {
             case '1':
                 System.out.println("Option 1 selected\n");
+                TtoSLPmenu();
                 break;
             case '2':
                 System.out.println("Option 2 selected\n");
@@ -54,4 +61,44 @@ public class Main {
             break;
         }
     }
+
+    public static void TtoSLPmenu() {
+        System.out.println("Choose the file to convert: ");
+        // TODO: file name check ?
+        String file = input.nextLine();
+        String input = "";
+        SLP = new Text_to_SLP();
+        try {
+            input = new String(Files.readAllBytes(Paths.get(file)));
+        } catch (IOException e) {
+            System.out.println("Failed to read file.");
+        }
+        try {
+            PrintStream stdout = System.out;
+            PrintStream stream = new PrintStream(file + ".txt");
+            System.setOut(stream);
+            SLP.TtoG(input);
+            System.setOut(stdout);
+            System.out.println("Output successfully saved to " + file + ".txt");
+
+        } catch (Exception e) {
+
+        }
+
+        // try {
+        // FileOutputStream fileOut = new FileOutputStream(file + ".txt");
+        // ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+        // objectOut.writeBytes(output);
+
+        // System.out.println("2");
+        // objectOut.flush();
+        // objectOut.close();
+        // System.out.println("Output successfully saved to " + file + ".txt");
+        // } catch (IOException e) {
+        // System.err.println(e);
+        // System.out.println("Unable to output to file.");
+        // }
+
+    }
+
 }
