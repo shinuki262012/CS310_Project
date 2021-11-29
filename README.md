@@ -3,7 +3,7 @@
 ### Tianlong Zhong 
 
 Efficient compression algorithms and transformations between SLP and LZ77 representations.
-
+<!-- 
 Software that would implement the following algorithms:
 
 (1) transform input text into an SLP representation that's not too big compared to the smallest grammar for this text, following the paper
@@ -25,4 +25,4 @@ benefit from and build on previous works on the subject, such as
 partial implementations in the projects that my project students have
 worked on in the previous years (I'll share the links with you) as well
 as other software you may find online.
-
+ -->
