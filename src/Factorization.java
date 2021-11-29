@@ -10,7 +10,7 @@ public class Factorization {
      */
     public static ArrayList<Pair<Integer, Integer>> factorization(String input) {
         // Get input
-
+        // System.out.println("Input: " + input);
         int[] array = new int[input.length() + 3];
         for (int i = 0; i < input.length(); i++) {
             array[i] = (int) input.charAt(i);
@@ -19,28 +19,33 @@ public class Factorization {
         // Compute the suffix array of the string input
         Skew SA = new Skew();
         int[] suffixArray = SA.buildSuffixArray(array, 0, input.length());
-        // for (int i = 0; i < suffixArray.length; i++) {
-        // System.out.println(Integer.toString(suffixArray[i]));
-        // }
 
         // Trim the suffix array
         int[] suffix_array = Arrays.copyOfRange(suffixArray, 0, input.length());
+        // Print the suffix array
+        // System.out.print("Suffix array: [" + Integer.toString(suffix_array[0]));
+        // for (int i = 1; i < suffix_array.length; i++) {
+        // System.out.print(", " + Integer.toString(suffix_array[i]));
+        // }
+        // System.out.print("]\n");
         // CallKKP2, return the factorization
         ArrayList<Pair<Integer, Integer>> F = new ArrayList<Pair<Integer, Integer>>();
         byte[] X = input.getBytes();
-        int result = kkp2(X, suffix_array, input.length(), F);
+        int result = kkp2(X, suffix_array, input.length(), F); // number of factors
         // System.out.println(result);
         // Print the factorization
-        for (int i = 0; i < F.size(); i++) {
-            int first = F.get(i).first;
-            int second = F.get(i).second;
-            // if (second == 0) { // if first can be converted to a ASCII char
-            // char letter = (char) first;
-            // System.out.print("(" + letter + ", " + F.get(i).second + ")");
-            // } else {
-            // System.out.print("(" + first + ", " + F.get(i).second + ")");
-            // }
-        }
+        // System.out.println("LZ77 factorization: ");
+        // for (int i = 0; i < F.size(); i++) {
+        // int first = F.get(i).first;
+        // int second = F.get(i).second;
+        // if (second == 0) { // if first can be converted to a ASCII char
+        // char letter = (char) first;
+        // System.out.print("(" + letter + ", " + F.get(i).second + ")");
+        // } else {
+        // System.out.print("(" + first + ", " + F.get(i).second + ")");
+        // }
+        // }
+        // System.out.println("");
 
         return F;
 

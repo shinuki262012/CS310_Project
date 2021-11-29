@@ -46,13 +46,16 @@ public class SLP_to_text {
                 }
             }
             if (!terminate) {
-                text = new ArrayList<String>(newText);
+                text.clear();
+                text.addAll(newText);
                 newText.clear();
-                layer = new ArrayList<BinaryTreeNode<String>>(next_layer);
+                layer.clear();
+                layer.addAll(next_layer);
                 next_layer.clear();
             }
         }
 
+        System.out.println("Parse tree: ");
         root.toString("", false);
         return String.join("", newText);
     }

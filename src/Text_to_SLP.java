@@ -2,6 +2,7 @@ import java.io.*;
 // import java.util.*;
 import java.util.Queue;
 import java.util.TreeMap;
+import java.util.function.IntPredicate;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ import java.util.Map; // to store the grammar
 import java.util.HashMap;
 
 /**
- * TODO: int -> long
+ * TODO: heap space
  * 
  *
  * 
@@ -66,8 +67,6 @@ public class Text_to_SLP {
         String[] alphabets = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R",
                 "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
-        // TODO for large files?
-        // 26 letters * 2^32?
         // Cosntruct the fresh letters, in the form of Xi, where i is an interger
         for (int f = 0; f < 2 * w; f++) {
             int n = (int) f / 26;
@@ -84,7 +83,12 @@ public class Text_to_SLP {
             if (terminalRules.get(input_array[i]) == null) {
                 // Add a grammar rule
                 String nonTerminal = fresh_letters.remove();
-                terminalRules.put(input_array[i], nonTerminal);
+                if (input_array[i].equals(" "))
+                    terminalRules.put("' '", nonTerminal);
+                else if (input_array[i].equals("\n"))
+                    terminalRules.put("\\n", nonTerminal);
+                else
+                    terminalRules.put(input_array[i], nonTerminal);
                 input_array[i] = nonTerminal;
             } else {
                 // replace the character with the nonterminal
@@ -98,8 +102,13 @@ public class Text_to_SLP {
             Pair<String, String> rhs = new Pair<String, String>(rule.getKey(), "");
             grammar.put(rule.getValue(), rhs);
         }
-        String tRules = grammar.toString();
-        // System.out.println(tRules);
+        // System.out.println("Rules for terminals: ");
+        // for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
+        // System.out.println(rule.getKey() + "->" + rule.getValue().first +
+        // (rule.getValue().second == ""
+        // ? (", " + rule.getValue().second)
+        // : ""));
+        // }
 
         // Main loop
         while (input_array.length > 1) {
@@ -136,16 +145,20 @@ public class Text_to_SLP {
         grammar.remove(start_symbol);
 
         // Print grammar
-        String output = "";
+        // System.out.println("Final grammar: ");
         for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
-            // output = output + rule.getKey() + "->" + rule.getValue().first + " " +
-            // rule.getValue().second + "\n";
-            System.out.println(rule.getKey() + "->" + rule.getValue().first + ", " + rule.getValue().second);
+            String L = rule.getValue().first;
+            String R = rule.getValue().second;
+            String result = rule.getKey() + "->" + L;
+            if (!R.equals("")) {
+                result += R;
+            }
+            System.out.println(result);
         }
 
         // Check grammar by decompressing and compare
-        // SLP_to_text decompresser = new SLP_to_text();
-        // String decompressed_string = decompresser.GtoT(grammar);
+        SLP_to_text decompresser = new SLP_to_text();
+        String decompressed_string = decompresser.GtoT(grammar);
         // System.out.println(decompressed_string);
         // if (decompressed_string.equals(input))
         // System.out.println("YES");
@@ -156,11 +169,13 @@ public class Text_to_SLP {
 
     public static void Pairing(String[] input, int[] start, int[] end, int[] pair) {
         int w = input.length;
+        // System.out.println(input.length);
         // System.out.println("Pairing: input: " + String.join("", input));
         // System.out.println("Start: " + Arrays.toString(start));
         // System.out.println("End: " + Arrays.toString(end));
         // System.out.println("Pair: " + Arrays.toString(pair));
 
+        // Check if the first letter is a free letter
         if (start[0] != -1) {
             if (end[0] == 1) {
                 start[0] = end[0] = -1;
@@ -194,14 +209,16 @@ public class Text_to_SLP {
                     }
                 }
             }
-            if (start[i] == -1) { // w[i] is a free letter
-                if (pair[i - 1] == 0) { // if previous letter is not paired
-                    pair[i - 1] = 1; // pair them
-                    pair[i] = 2;
-                } else {
-                    pair[i] = 0; // leave the letter unpaired
+            if (i < w) {
+                if (start[i] == -1) { // w[i] is a free letter
+                    if (pair[i - 1] == 0) { // if previous letter is not paired
+                        pair[i - 1] = 1; // pair them
+                        pair[i] = 2;
+                    } else {
+                        pair[i] = 0; // leave the letter unpaired
+                    }
+                    i++;
                 }
-                i++;
             }
         }
 
@@ -209,10 +226,10 @@ public class Text_to_SLP {
     }
 
     public static String[] PairReplacement(String[] input, int[] start, int[] end, int[] pair) {
-        // System.out.println("Replace: ----------------------------------");
         // TODO space complexity increased
         String[] inputP = new String[input.length]; // the new word after replacing the pairing
 
+        // System.out.println("Replace: ----------------------------------");
         // System.out.println("Start: " + Arrays.toString(start));
         // System.out.println("End: " + Arrays.toString(end));
         // System.out.println("Pair: " + Arrays.toString(pair));
@@ -249,21 +266,24 @@ public class Text_to_SLP {
                 end[iP - 1] = 1; // End in the new word
                 end[i - 1] = -1; // Clearing obsolete info
             }
-            if (start[i] == -1) { // w[i] is a free letter
-                newpos[i] = iP;
-                if (pair[i] == 0) {
-                    inputP[iP] = input[i]; // copy the unpaired letter
-                    i++; // move by this letter to the right
-                    iP++;
-                } else {
-                    String nonTerminal = fresh_letters.remove();
-                    Pair<String, String> rhs = new Pair<String, String>(input[i], input[i + 1]);
-                    inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
-                    // System.out.println("1 input: " + String.join("", input));
-                    // Record the grammar ruls
-                    grammar.put(nonTerminal, rhs);
-                    i += 2;
-                    iP += 1;
+            if (i < input.length) {
+
+                if (start[i] == -1) { // w[i] is a free letter
+                    newpos[i] = iP;
+                    if (pair[i] == 0) {
+                        inputP[iP] = input[i]; // copy the unpaired letter
+                        i++; // move by this letter to the right
+                        iP++;
+                    } else {
+                        String nonTerminal = fresh_letters.remove();
+                        Pair<String, String> rhs = new Pair<String, String>(input[i], input[i + 1]);
+                        inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
+                        // System.out.println("1 input: " + String.join("", input));
+                        // Record the grammar ruls
+                        grammar.put(nonTerminal, rhs);
+                        i += 2;
+                        iP += 1;
+                    }
                 }
             }
         }
@@ -271,12 +291,13 @@ public class Text_to_SLP {
     }
 
     public static void main(String[] args) {
-        // String input = "zzzzzipzip";
+        String input = "zzzzzipzip";
         // String input = "aabbabbbasdasb";
         // String input = "aabbabbbasdaassbacdgkl"; // tests Z0 as the start symbol
         // String input = "this is a test string";
-        String input = "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
-
+        // String input =
+        // "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
+        // String input = "aaaaaaaaaaaa";
         TtoG(input);
     }
 
