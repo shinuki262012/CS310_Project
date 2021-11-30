@@ -65,9 +65,9 @@ public class Main {
 
     public static void TtoSLPmenu() {
         System.out.println("Choose the file to convert: ");
-        // TODO: file name check ?
-        // String file = input.nextLine();
-        String file = "..\\test\\zip";
+        // TODO: file name check
+        String file = input.nextLine();
+        // String file = "..\\test\\zip";
         // String file = "..\\test\\alice29";
         // String file = "..\\test\\enwik7";
         // String file = "..\\test\\128random";
@@ -82,6 +82,7 @@ public class Main {
             PrintStream stdout = System.out;
             PrintStream stream = new PrintStream(file + ".slp");
             System.setOut(stream);
+            System.out.println(input.length());
             SLP.TtoG(input);
             System.setOut(stdout);
             System.out.println("Output successfully saved to " + file + ".slp");

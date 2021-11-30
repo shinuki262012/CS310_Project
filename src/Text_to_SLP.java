@@ -1,3 +1,4 @@
+import java.applet.AppletStub;
 import java.io.*;
 // import java.util.*;
 import java.util.Queue;
@@ -18,7 +19,8 @@ import java.util.HashMap;
  */
 
 public class Text_to_SLP {
-    public static Queue<String> fresh_letters;
+    public static String[] fresh_letters;
+    public static int next_fresh_letter = 0;
     public static Map<String, Pair<String, String>> grammar = new HashMap<String, Pair<String, String>>(); // resulting
 
     /**
@@ -63,15 +65,19 @@ public class Text_to_SLP {
             }
         }
 
-        fresh_letters = new LinkedList<>();
+        fresh_letters = new String[2 * w];
         String[] alphabets = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R",
                 "S", "T", "U", "V", "W", "X", "Y", "Z" };
+        // String[] alphabets = new String[alphabet.length * alphabet.length +
+        // alphabet.length];
 
         // Cosntruct the fresh letters, in the form of Xi, where i is an interger
         for (int f = 0; f < 2 * w; f++) {
             int n = (int) f / 26;
             // System.out.println(alphabets[f % 26] + Integer.toString(n));
-            fresh_letters.add(alphabets[f % 26] + Integer.toString(n));
+            // fresh_letters.add(alphabets[f % 26] + Integer.toString(n));
+            System.out.println(f);
+            fresh_letters[f] = alphabets[f % 26] + String.valueOf(n);
         }
 
         String[] input_array = input.split("");
@@ -82,7 +88,8 @@ public class Text_to_SLP {
             // Check if the character has appeared in the grammar
             if (terminalRules.get(input_array[i]) == null) {
                 // Add a grammar rule
-                String nonTerminal = fresh_letters.remove();
+                String nonTerminal = fresh_letters[next_fresh_letter];
+                next_fresh_letter++;
                 if (input_array[i].equals(" "))
                     terminalRules.put("' '", nonTerminal);
                 else if (input_array[i].equals("\n"))
@@ -122,7 +129,8 @@ public class Text_to_SLP {
 
         // Set the start symbol to S
         String start_symbol;
-        String last_letter = fresh_letters.remove();
+        String last_letter = fresh_letters[next_fresh_letter];
+        next_fresh_letter++;
         // System.out.println("last leter is :" + last_letter);
         char letter = last_letter.charAt(0);
         String number = last_letter.substring(1);
@@ -157,8 +165,8 @@ public class Text_to_SLP {
         }
 
         // Check grammar by decompressing and compare
-        SLP_to_text decompresser = new SLP_to_text();
-        String decompressed_string = decompresser.GtoT(grammar);
+        // SLP_to_text decompresser = new SLP_to_text();
+        // String decompressed_string = decompresser.GtoT(grammar);
         // System.out.println(decompressed_string);
         // if (decompressed_string.equals(input))
         // System.out.println("YES");
@@ -275,7 +283,8 @@ public class Text_to_SLP {
                         i++; // move by this letter to the right
                         iP++;
                     } else {
-                        String nonTerminal = fresh_letters.remove();
+                        String nonTerminal = fresh_letters[next_fresh_letter];
+                        next_fresh_letter++;
                         Pair<String, String> rhs = new Pair<String, String>(input[i], input[i + 1]);
                         inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
                         // System.out.println("1 input: " + String.join("", input));
