@@ -13,8 +13,8 @@ public class FOLCA {
     public static Map<String, String> D_r = new HashMap<String, String>();
     // A list of nonterminals
     public static Queue<String> non_terminals = new LinkedList<>();
-    public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
-            "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+    public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G",
+            "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
     /**
      * Fully online LCA
@@ -62,11 +62,12 @@ public class FOLCA {
             System.out.println("Failed to read the file");
         }
         for (Map.Entry<String, Pair<String, String>> rule : D.entrySet()) {
-            System.out.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
+            System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
+                    rule.getValue().second);
         }
-        for (Map.Entry<String, String> rule : D_r.entrySet()) {
-            System.out.println(rule.getKey() + "<-" + rule.getValue());
-        }
+        // for (Map.Entry<String, String> rule : D_r.entrySet()) {
+        // System.out.println(rule.getKey() + "<-" + rule.getValue());
+        // }
 
     }
 
@@ -237,12 +238,25 @@ public class FOLCA {
     public static Queue<String> populate_nonterminals(String last_nonterminal) {
         if (last_nonterminal == "") {
             non_terminals = new LinkedList<>();
-            for (int i = 0; i < 512; i++) {
+            // Initially create 128 nonterminals
+            for (int i = 0; i < 128; i++) {
                 int n = (int) i / 26;
                 non_terminals.add(alphabets[i % 26] + String.valueOf(n));
             }
         } else {
-            // TODO: double the nonterminals
+            // Get the number of nonterminals created so far from the last nonterminal
+            String alphabet = String.valueOf(last_nonterminal.charAt(0));
+            int a = (int) Integer.valueOf(Arrays.asList(alphabets).indexOf(alphabet));
+            System.out.println(a);
+            long n = (long) Integer.valueOf(last_nonterminal.substring(1));
+            System.out.println(n);
+            long next = n * 26 + a + 1;
+            System.out.println(next);
+            // Add double number of terminals
+            for (long i = next; i < next * 2; i++) {
+                int x = (int) i / 26;
+                non_terminals.add(alphabets[(int) i % 26] + String.valueOf(x));
+            }
         }
         return non_terminals;
     }
