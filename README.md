@@ -1,6 +1,8 @@
 # CS310_Project
+
 ## Algorithms for compressed text
-### Tianlong Zhong 
+
+### Tianlong Zhong
 
 Efficient compression algorithms and transformations between SLP and LZ77 representations.
 
@@ -26,3 +28,6 @@ partial implementations in the projects that my project students have
 worked on in the previous years (I'll share the links with you) as well
 as other software you may find online.
 
+javac .\FOLCA.java
+java FOLCA
+file location: ..\test\zip

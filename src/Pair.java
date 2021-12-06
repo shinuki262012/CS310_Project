@@ -15,12 +15,12 @@ public final class Pair<V1, V2> implements Serializable {
         second = value2;
     }
 
-    public Pair setFirst(V1 v) {
+    public Pair<V1, V2> setFirst(V1 v) {
         first = v;
         return this;
     }
 
-    public Pair setSecond(V2 v) {
+    public Pair<V1, V2> setSecond(V2 v) {
         second = v;
         return this;
     }

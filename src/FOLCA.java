@@ -1,6 +1,8 @@
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicMarkableReference;
 import java.io.*;
+import java.lang.Thread.State;
 import java.nio.charset.StandardCharsets;
 
 public class FOLCA {
@@ -17,7 +19,7 @@ public class FOLCA {
             "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
     /**
-     * Fully online LCA
+     * Fully online LCA implementation
      */
     public static void Folca() {
         // Initialize queues
@@ -49,6 +51,15 @@ public class FOLCA {
                             queues.get(i).poll();
                             ProcessSymbol(i + 1, queues.get(i).poll());
                             finish = false;
+                        } else if (queues.get(i).size() == 4) {
+                            queues.get(i).poll();
+                            queues.get(i).poll();
+                            String qk3 = queues.get(i).poll();
+                            String qk4 = queues.get(i).poll();
+                            queues.get(i).add(qk3);
+                            queues.get(i).add(qk4);
+                            String Y = Update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                            ProcessSymbol(i + 1, Y); // add the nonterminal Y to upper tree level
                         }
                     }
                 }
@@ -65,12 +76,62 @@ public class FOLCA {
             System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
                     rule.getValue().second);
         }
-        // for (Map.Entry<String, String> rule : D_r.entrySet()) {
-        // System.out.println(rule.getKey() + "<-" + rule.getValue());
-        // }
 
+        // Get the starting symbol: the root node in the parse tree
+        queues.get(queues.size() - 1).poll();
+        queues.get(queues.size() - 1).poll();
+        String start_symbol = queues.get(queues.size() - 1).poll();
+        System.out.println("Start symbol: " + start_symbol);
+
+        // Build a POPPT out of the POSLP
+        Queue<Byte> bit_stream = new LinkedList<>();
+        Queue<String> leaves = new LinkedList<>();
+        ArrayList<String> inners = new ArrayList<>();
+        ArrayList<Boolean> inner_appeared_twice = new ArrayList<>();
+        // Set of non terminals, each rule is to be applied once
+        Set<String> key_set = D.keySet();
+        System.out.println(key_set);
+
+        // 2 stacks used for the post order traversal
+        Stack<String> stack1 = new Stack<String>();
+        Stack<String> stack2 = new Stack<String>();
+        stack1.add(start_symbol);
+        while (!stack1.isEmpty()) {
+            String current_node = stack1.peek();
+            if (D.containsKey(current_node)) {
+                inners.add(current_node);
+                inner_appeared_twice.add(false);
+                Pair<String, String> rhs = D.get(current_node);
+                stack1.add(rhs.second);
+                stack1.add(rhs.first);
+                // Remove the applied rule
+                D.remove(current_node);
+
+            } else {
+                stack1.pop();
+                stack2.add(current_node);
+                if (inners.contains(current_node) && !inner_appeared_twice.get(inners.indexOf(current_node))) {
+                    inner_appeared_twice.set(inners.indexOf(current_node), true);
+                    bit_stream.add((byte) 1);
+                } else {
+                    leaves.add(current_node);
+                    bit_stream.add((byte) 0);
+                }
+            }
+        }
+        bit_stream.add((byte) 1);// add an extra virtual node
+        System.out.println(bit_stream);
+        System.out.println(stack2);
+        System.out.println(inners);
+        System.out.println(leaves);
     }
 
+    /**
+     * Process the input symbol X
+     * 
+     * @param level the level where X is added into
+     * @param X     next input character X
+     */
     public static void ProcessSymbol(int level, String X) {
         System.out.println("Processing " + X);
         Queue<String> q_k = queues.get(level);
@@ -225,6 +286,11 @@ public class FOLCA {
         return Z;
     }
 
+    /**
+     * Get a nonterminal
+     * 
+     * @return a nonterminal
+     */
     public static String get_nonterminal() {
         if (non_terminals.size() == 1) {
             // create more nonterminals
@@ -235,6 +301,12 @@ public class FOLCA {
         return non_terminals.remove();
     }
 
+    /**
+     * Create more nonterminals
+     * 
+     * @param last_nonterminal the last nonterminal
+     * @return the queue of nonterminals created
+     */
     public static Queue<String> populate_nonterminals(String last_nonterminal) {
         if (last_nonterminal == "") {
             non_terminals = new LinkedList<>();
@@ -259,6 +331,37 @@ public class FOLCA {
             }
         }
         return non_terminals;
+    }
+
+    public static void decompress(Queue<Byte> bit_stream, Queue<String> leaves) {
+        int c = 0;
+        long i = 0;
+        Map<String, Pair<String, String>> D = new HashMap<String, Pair<String, String>>();
+        Stack<String> S = new Stack<String>();
+        while (!bit_stream.isEmpty()) {
+            byte bit = bit_stream.poll();
+            if (bit == 0) {
+                c++;
+                S.add(leaves.poll());
+            } else {
+                c--;
+                String lhs = S.pop();
+                String rhs = S.pop();
+                Pair<String, String> rule = new Pair<String, String>(lhs, rhs);
+                String x_i = "X" + String.valueOf(i);
+                D.put(x_i, rule);
+                i++;
+                S.add(x_i);
+            }
+            if (c == 0) { //
+                String A = S.pop();
+                Pair<String, String> rule = new Pair<String, String>();
+                // Recover subtext using A and D
+
+            }
+
+        }
+
     }
 
     public static void main(String[] args) {
