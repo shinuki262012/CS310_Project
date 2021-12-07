@@ -1,8 +1,5 @@
 import java.util.*;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.atomic.AtomicMarkableReference;
 import java.io.*;
-import java.lang.Thread.State;
 import java.nio.charset.StandardCharsets;
 
 public class FOLCA {
@@ -11,6 +8,10 @@ public class FOLCA {
     public static ArrayList<Queue<String>> queues = new ArrayList<>();
     // D: phrase dictionary
     public static Map<String, Pair<String, String>> D = new HashMap<String, Pair<String, String>>();
+    // Frequency counter
+    public static Map<String, Integer> freq_counter = new HashMap<String, Integer>();
+    public static int k = 1024; // max size of the pharse dictionary
+    public static double ep = 5; // vacancy rate
     // D_r: reverse dictionary
     public static Map<String, String> D_r = new HashMap<String, String>();
     // A list of nonterminals
@@ -58,7 +59,8 @@ public class FOLCA {
                             String qk4 = queues.get(i).poll();
                             queues.get(i).add(qk3);
                             queues.get(i).add(qk4);
-                            String Y = Update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                            // String Y = Update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                            String Y = Freq_counting(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
                             ProcessSymbol(i + 1, Y); // add the nonterminal Y to upper tree level
                         }
                     }
@@ -75,6 +77,9 @@ public class FOLCA {
         for (Map.Entry<String, Pair<String, String>> rule : D.entrySet()) {
             System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
                     rule.getValue().second);
+        }
+        for (Map.Entry<String, String> rule : D_r.entrySet()) {
+            System.out.println(rule.getKey() + "<-" + rule.getValue());
         }
 
         // Get the starting symbol: the root node in the parse tree
@@ -152,7 +157,8 @@ public class FOLCA {
                 String qk4 = q_k.poll();
                 q_k.add(qk3);
                 q_k.add(qk4);
-                String Y = Update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                // String Y = Update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                String Y = Freq_counting(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
                 ProcessSymbol(level + 1, Y); // add the nonterminal Y to upper tree level
             }
 
@@ -171,13 +177,16 @@ public class FOLCA {
             String qk5 = q_k.poll();
             q_k.add(qk4);
             q_k.add(qk5);
-            String Y = Update(qk4, qk5); // replace q_k[4], q_k[5] with nonterminal Y
-            String Z = Update(qk3, Y); // replace q_k[3], Y with nonterminal Z
+            // String Y = Update(qk4, qk5); // replace q_k[4], q_k[5] with nonterminal Y
+            // String Z = Update(qk3, Y); // replace q_k[3], Y with nonterminal Z
+            String Y = Freq_counting(qk4, qk5); // replace q_k[4], q_k[5] with nonterminal Y
+            String Z = Freq_counting(qk3, Y); // replace q_k[3], Y with nonterminal Z
             ProcessSymbol(level + 1, Z); // add nonterminal Z to upper tree level
         }
 
     }
 
+    // TODO: isMaximal
     /**
      * 
      * @param q_k substrings of length 4
@@ -282,6 +291,45 @@ public class FOLCA {
             if (!D.containsKey(Z)) {
                 D.put(Z, rhs); // add the new production rule to the phrase dictionary
             }
+        }
+        return Z;
+    }
+
+    public static String Freq_counting(String X, String Y) {
+        String Z = D_r.get(X + Y);
+        if (Z != null) { // D contains the rule
+            if (freq_counter.containsKey(Z)) {
+                freq_counter.replace(Z, freq_counter.get(Z) + 1);
+            } else {
+                freq_counter.put(Z, 1);
+            }
+        } else { // D does not contains the rule
+            Z = get_nonterminal();
+            // If the size of the phrase dictionary reached the max size
+            if (D.size() >= k) {
+                // Remove infrequent rules
+                while (k * (1 - ep / 100) < D.size()) {
+                    Iterator iterator = D.keySet().iterator();
+                    while (iterator.hasNext()) {
+
+                        String nonterminal = (String) iterator.next();
+                        System.out.println(nonterminal);
+                        freq_counter.replace(nonterminal, freq_counter.get(nonterminal) - 1);
+                        if (freq_counter.get(nonterminal) == 0) {
+                            // D.remove(nonterminal);
+                            iterator.remove();
+                            freq_counter.remove(nonterminal);
+                        }
+                    }
+                }
+            }
+            // Add new production rules
+            Pair<String, String> rhs = new Pair<>(X, Y);
+            D_r.put(X + Y, Z); // add the new production rule to the reverse dictionary
+            if (!D.containsKey(Z))
+                D.put(Z, rhs); // add the new production rule to the phrase dictionary
+            if (!freq_counter.containsKey(Z))
+                freq_counter.put(Z, 1);
         }
         return Z;
     }
