@@ -80,13 +80,13 @@ public class Main {
         }
         try {
             PrintStream stdout = System.out;
+            // Output to a file
             PrintStream stream = new PrintStream(file + ".slp");
             System.setOut(stream);
             System.out.println(input.length());
             SLP.TtoG(input);
             System.setOut(stdout);
             System.out.println("Output successfully saved to " + file + ".slp");
-
         } catch (Exception e) {
 
         }

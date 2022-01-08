@@ -34,7 +34,7 @@ public class Text_to_SLP {
         Factorization fac = new Factorization();
         ArrayList<Pair<Integer, Integer>> factorization = fac.factorization(input);
         // Initialise tables start, end and pair
-        int[] start = new int[w]; // stores beginning of factors, -1::not the beginning of a factor
+        int[] start = new int[w]; // stores beginning of factors, -1: not the beginning of a factor
         int[] end = new int[w]; // stores ends of factors: 1/-1 -> whether w[i] is the last letter of a factor
         int[] pair = new int[w]; // stores pairing, 0: unpaired; 1: first in a pair; 2: second in a pair
         Arrays.fill(start, -1);

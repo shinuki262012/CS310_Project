@@ -29,3 +29,5 @@ TotalMilliseconds : 109.9495 (map)
 
 Run command multiple times (powershell)
 for ($i=1; $i -le 3; $i++) { Measure-Command {java Main} }
+
+

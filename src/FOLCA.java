@@ -2,29 +2,36 @@ import java.util.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Fully Online LCA implementation based on S. Maruyama and Y. Tabei,
+ * "Fully Online Grammar Compression in Constant Space," 2014 Data Compression
+ * Conference, 2014, pp. 173-182, doi: 10.1109/DCC.2014.69.
+ * 
+ * 
+ */
+
 public class FOLCA {
     public static Scanner input;
-    // queues: q_k: queue at level k
-    public static ArrayList<Queue<String>> queues = new ArrayList<>();
-    // D: phrase dictionary
-    public static Map<String, Pair<String, String>> D = new HashMap<String, Pair<String, String>>();
-    // Frequency counter
-    public static Map<String, Integer> freq_counter = new HashMap<String, Integer>();
+    public static ArrayList<Queue<String>> queues = new ArrayList<>(); // queues used for processing symbols
+    public static Map<String, Pair<String, String>> D = new HashMap<String, Pair<String, String>>(); // phrase
+                                                                                                     // dictionary
+    public static Map<String, Integer> freq_counter = new HashMap<String, Integer>(); // frequency counter
     public static int k = 1024; // max size of the pharse dictionary
     public static double ep = 5; // vacancy rate
-    // D_r: reverse dictionary
-    public static Map<String, String> D_r = new HashMap<String, String>();
-    // A list of nonterminals
-    public static Queue<String> non_terminals = new LinkedList<>();
+
+    public static Map<String, String> D_r = new HashMap<String, String>(); // reverse dictionary
+
+    public static Queue<String> non_terminals = new LinkedList<>(); // a list of nonterminals
+
     public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G",
             "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
     /**
-     * Fully online LCA implementation
+     * Fully Online LCA implementation
      */
     public static void Folca() {
-        // Initialize queues
-        Queue<String> q0 = new LinkedList<String>(); // queue is initialized with 2 dummy symbols
+        // Initialize queue with 2 dummy symbols
+        Queue<String> q0 = new LinkedList<String>();
         q0.add("");
         q0.add("");
         queues.add(q0);
@@ -38,6 +45,7 @@ public class FOLCA {
                     new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
             int c;
             try {
+                // Read a character and process it
                 while ((c = reader.read()) != -1) {
                     String character = String.valueOf((char) c);
                     ProcessSymbol(0, character);
@@ -74,6 +82,7 @@ public class FOLCA {
         } catch (Exception e) {
             System.out.println("Failed to read the file");
         }
+        // DELETE
         for (Map.Entry<String, Pair<String, String>> rule : D.entrySet()) {
             System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
                     rule.getValue().second);
@@ -132,19 +141,20 @@ public class FOLCA {
     }
 
     /**
-     * Process the input symbol X
+     * Process the given character X inserted into the given level
      * 
-     * @param level the level where X is added into
-     * @param X     next input character X
+     * @param level the level where X is inserted into
+     * @param X     input character X
      */
     public static void ProcessSymbol(int level, String X) {
         System.out.println("Processing " + X);
         Queue<String> q_k = queues.get(level);
         q_k.add(X);
         System.out.println(queues.toString());
-        if (q_k.size() == 4) { // build a 2-tree
-            if (!Landmark(q_k, 1)) {
-                if (level + 1 == queues.size()) { // The next level queue is not defined yet
+        if (q_k.size() == 4) {
+            if (!Landmark(q_k, 1)) { // build a 2-tree: A -> XY
+                if (level + 1 == queues.size()) { // the queue in the next level is not defined yet
+                    // Initiate and add a new queue one level up
                     Queue<String> q_k_plus_1 = new LinkedList<String>();
                     q_k_plus_1.add("");
                     q_k_plus_1.add("");
@@ -162,8 +172,9 @@ public class FOLCA {
                 ProcessSymbol(level + 1, Y); // add the nonterminal Y to upper tree level
             }
 
-        } else if (q_k.size() == 5) {
-            if (level + 1 == queues.size()) { // The next level queue is not defined yet
+        } else if (q_k.size() == 5) { // build a 2-2-tree: A -> YZ and B -> XA
+            if (level + 1 == queues.size()) { // the queue in the next level is not defined yet
+                // Initiate and add a new queue one level up
                 Queue<String> q_k_plus_1 = new LinkedList<String>();
                 q_k_plus_1.add("");
                 q_k_plus_1.add("");
@@ -186,38 +197,37 @@ public class FOLCA {
 
     }
 
-    // TODO: isMaximal
     /**
+     * Decide whether position pos in q_k is a landmark: the pair q_k[pos, pos+1] is
+     * replaced or not
      * 
-     * @param q_k substrings of length 4
-     * @param i   position
-     * @return Whether the i-th position in q_k is a landmark
+     * @param q_k substring of length 4: q_k[pos-1, pos, pos+1, pos+2]
+     * @param pos position
+     * @return whether position pos in q_k is a landmark
      */
-    public static boolean Landmark(Queue<String> q_k, int i) {
+    public static boolean Landmark(Queue<String> q_k, int pos) {
         System.out.println("Landmark for" + q_k.toString());
+        // Copy the given queue into an array
         String[] qk = new String[q_k.size()];
         for (int j = 0; j < q_k.size(); j++) {
             qk[j] = (String) q_k.remove();
             q_k.add(qk[j]);
         }
-        if (qk[0] == "") {
+
+        if (qk[0] == "") { // the queue starts with dummy symbols, qk[pos, pos+1] should not be paired
             System.out.println("0");
             return false;
-            // return (!qk[i + 1].equals(qk[i + 2]));
         } else {
-            if (qk[i + 1].equals(qk[i + 2])) {
+            if (qk[pos + 1].equals(qk[pos + 2])) { // qk[pos+1, pos+2] is a repetitive pair
                 System.out.println("1");
                 return false;
-            }
-            // else if (isMinimal(qk, i) || isMaximal(qk, i)) { // qk[i, i+1] is a
-            // minimal/maximal pair
-            // System.out.println("3");
-            // return true;
-            // }
-            else if (isMinimal(qk, i + 1) || isMaximal(qk, i + 1)) {// qk[i+1, i+2] is a minimal/maximal pair
+            } else if (isMinimal(qk, pos) || isMaximal(qk, pos)) { // qk[pos, pos+1] is a minimal/maximal pair
+                System.out.println("3");
+                return true;
+            } else if (isMinimal(qk, pos + 1) || isMaximal(qk, pos + 1)) {// qk[pos+1, pos+2] is a minimal/maximal pair
                 System.out.println("4");
                 return false;
-            } else {
+            } else { // qk[pos, pos+2] contains no special pair
                 System.out.println("5");
                 return true;
             }
@@ -226,57 +236,79 @@ public class FOLCA {
     }
 
     /**
-     * queue = [i-1, i, i+1, i+2], check if (i, i+1) is a minimal pair
+     * queue = {i-1, i, i+1, i+2}, check if queue[i, i+1] is a minimal pair
+     * queue[i, i+1] is a minimal pair if queue[i+1] < queue[i], queue[i+2]
      * 
-     * @param queue
-     * @param pos
-     * @return
+     * @param queue given queue of length 4
+     * @param pos   given position
+     * @return whether queue[i, i+1] is a minimal pair
      */
     public static boolean isMinimal(String[] queue, int pos) {
+        // [?, terminal, ?]
         if (queue[pos].length() == 1) {
+            // [terminal, terminal, ?]
             if (queue[pos - 1].length() == 1) {
-                if (queue[pos + 1].length() == 1) {
-                    if ((((int) queue[pos].charAt(0)) < ((int) queue[pos - 1].charAt(0)))
-                            && (((int) queue[pos].charAt(0)) < ((int) queue[pos + 1].charAt(0)))) {
-                        return true;
-                    }
-                } else if (((int) queue[pos].charAt(0)) < ((int) queue[pos - 1].charAt(0))) {
-                    return true;
+                if (queue[pos + 1].length() == 1) { // [terminal, terminal, terminal]
+                    return ((((int) queue[pos].charAt(0)) < ((int) queue[pos - 1].charAt(0)))
+                            && (((int) queue[pos].charAt(0)) < ((int) queue[pos + 1].charAt(0)))) ? true : false;
+                } else { // [terminal, terminal, nonterminal]
+                    return (((int) queue[pos].charAt(0)) < ((int) queue[pos - 1].charAt(0))) ? true : false;
                 }
-            } else if (queue[pos + 1].length() == 1) {
-                if (((int) queue[pos].charAt(0)) < ((int) queue[pos + 1].charAt(0))) {
-                    return true;
-                }
-            } else {
+            }
+            // [nonterminal, terminal, terminal]
+            else if (queue[pos + 1].length() == 1) {
+                return (((int) queue[pos].charAt(0)) < ((int) queue[pos + 1].charAt(0))) ? true : false;
+            }
+            // [nonterminal, terminal, nonterminal]
+            else {
                 return true;
             }
         }
-        return false;
-    }
-
-    public static boolean isMaximal(String[] queue, int pos) {
-        if (queue[pos].length() == 1) {
-            if (queue[pos - 1].length() == 1) {
-                if (queue[pos + 1].length() == 1) {
-                    if ((((int) queue[pos].charAt(0)) < ((int) queue[pos - 1].charAt(0)))
-                            && (((int) queue[pos].charAt(0)) < ((int) queue[pos + 1].charAt(0)))) {
-                        return true;
-                    }
-                } else if (((int) queue[pos].charAt(0)) < ((int) queue[pos - 1].charAt(0))) {
-                    return true;
-                }
-            } else if (queue[pos + 1].length() == 1) {
-                if (((int) queue[pos].charAt(0)) < ((int) queue[pos + 1].charAt(0))) {
-                    return true;
-                }
-            } else {
-                return true;
+        // [?, nonterminal, ?]
+        else {
+            // [T, nonterminal, ?] or [?, nonterminal, T]
+            if (queue[pos - 1].length() == 1 || queue[pos + 1].length() == 1) {
+                return false;
+            }
+            // [nonterminal, nonterminal, nonterminal]
+            else {
+                return (queue[pos].compareTo(queue[pos - 1]) < 0 && queue[pos].compareTo(queue[pos + 1]) < 0) ? true
+                        : false;
             }
         }
-        return false;
     }
 
     /**
+     * queue = {i-1, i, i+1, i+2}, check if queue[i, i+1] is a maximal pair
+     * queue[i, i+1] is a maximal pair if queue[i-1, i+2] is in an
+     * incresing/decreasing order, and lca(queue[i, i+1]) > lca(queue[i-1, i]),
+     * lca(queue[i+1, i+2])
+     * 
+     * @param queue given queue of length 4
+     * @param pos   given position
+     * @return whether queue[i, i+1] is a maximal pair
+     */
+    public static boolean isMaximal(String[] queue, int pos) {
+        String s0 = queue[pos - 1];
+        String s1 = queue[pos];
+        String s2 = queue[pos + 1];
+        String s3 = queue[pos + 2];
+        // Check if the queue is in increasing/decreasing order
+        if ((s0.compareTo(s1) < 0 && s1.compareTo(s2) < 0 && s2.compareTo(s3) < 0)
+                || (s0.compareTo(s1) > 0 && s1.compareTo(s2) > 0 && s2.compareTo(s3) > 0)) {
+
+            return (((lca(s1, s2)) > lca(s0, s1)) && ((lca(s1, s2)) > lca(s2, s3))) ? true : false;
+        } else
+            return false;
+    }
+
+    public static int lca(String i, String j) {
+
+        return 1;
+    }
+
+    /**
+     * Return a nonterminal replacing the given digram
      * 
      * @param X first symbol in digram
      * @param Y second symbol in digram
@@ -295,6 +327,12 @@ public class FOLCA {
         return Z;
     }
 
+    /**
+     * 
+     * @param X
+     * @param Y
+     * @return
+     */
     public static String Freq_counting(String X, String Y) {
         String Z = D_r.get(X + Y);
         if (Z != null) { // D contains the rule
@@ -350,9 +388,9 @@ public class FOLCA {
     }
 
     /**
-     * Create more nonterminals
+     * Initiate or create nonterminals
      * 
-     * @param last_nonterminal the last nonterminal
+     * @param last_nonterminal the last unused nonterminal
      * @return the queue of nonterminals created
      */
     public static Queue<String> populate_nonterminals(String last_nonterminal) {
@@ -372,7 +410,7 @@ public class FOLCA {
             System.out.println(n);
             long next = n * 26 + a + 1;
             System.out.println(next);
-            // Add double number of terminals
+            // Add double of terminals
             for (long i = next; i < next * 2; i++) {
                 int x = (int) i / 26;
                 non_terminals.add(alphabets[(int) i % 26] + String.valueOf(x));
@@ -381,6 +419,11 @@ public class FOLCA {
         return non_terminals;
     }
 
+    /**
+     * 
+     * @param bit_stream bit string representing the POPPT
+     * @param leaves     label sequences representing the leaves of the POPPT
+     */
     public static void decompress(Queue<Byte> bit_stream, Queue<String> leaves) {
         int c = 0;
         long i = 0;
@@ -413,6 +456,13 @@ public class FOLCA {
     }
 
     public static void main(String[] args) {
+        // String a = "A23213";
+        // String b = "A2";
+        // String c = "B2";
+        // System.out.println(a.compareTo(b));
+        // System.out.println(b.compareTo(c));
+        // System.out.println(a.compareTo(c));
+
         Folca();
     }
 }
