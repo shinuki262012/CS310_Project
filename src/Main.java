@@ -16,14 +16,13 @@ public class Main {
     public static void main(String[] args) {
         input = new Scanner(System.in);
         // menu();
-        TtoSLPmenu();
+        txt_2_SLP_menu();
     }
 
     /**
      * Main menu
      */
     public static void menu() {
-        char op; // option
         while (true) {
             System.out.println("\n Menu: ");
             System.out.println("==================");
@@ -40,11 +39,10 @@ public class Main {
                 System.out.println("No option was given\n");
                 break;
             }
-            op = inputs.charAt(0);
-            switch (op) {
+            switch (inputs.charAt(0)) {
                 case '1':
                     System.out.println("Option 1 selected\n");
-                    TtoSLPmenu();
+                    txt_2_SLP_menu();
                     break;
                 case '2':
                     System.out.println("Option 2 selected\n");
@@ -63,7 +61,7 @@ public class Main {
         }
     }
 
-    public static void TtoSLPmenu() {
+    public static void txt_2_SLP_menu() {
         System.out.println("Choose the file to convert: ");
         // TODO: file name check
         String file = input.nextLine();

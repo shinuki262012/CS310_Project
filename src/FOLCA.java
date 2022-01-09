@@ -1,4 +1,7 @@
 import java.util.*;
+
+import javax.swing.plaf.synth.SynthSpinnerUI;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
@@ -20,23 +23,19 @@ public class FOLCA {
     public static double ep = 5; // vacancy rate
 
     public static Map<String, String> D_r = new HashMap<String, String>(); // reverse dictionary
-
-    public static Queue<String> non_terminals = new LinkedList<>(); // a list of nonterminals
-
+    public static long nonTerminalCounter = 0; // counter for nontermials
     public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G",
             "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
     /**
      * Fully Online LCA implementation
      */
-    public static void Folca() {
+    public static void folca() {
         // Initialize queue with 2 dummy symbols
         Queue<String> q0 = new LinkedList<String>();
         q0.add("");
         q0.add("");
         queues.add(q0);
-        // Initialize nonterminals
-        non_terminals = populate_nonterminals("");
         Scanner input = new Scanner(System.in);
         System.out.println("Choose the file to convert: ");
         String file = input.nextLine();
@@ -48,7 +47,7 @@ public class FOLCA {
                 // Read a character and process it
                 while ((c = reader.read()) != -1) {
                     String character = String.valueOf((char) c);
-                    ProcessSymbol(0, character);
+                    processSymbol(0, character);
                 }
                 // Finish up
                 boolean finish = false;
@@ -58,7 +57,7 @@ public class FOLCA {
                         if (queues.get(i).size() == 3) {
                             queues.get(i).poll();
                             queues.get(i).poll();
-                            ProcessSymbol(i + 1, queues.get(i).poll());
+                            processSymbol(i + 1, queues.get(i).poll());
                             finish = false;
                         } else if (queues.get(i).size() == 4) {
                             queues.get(i).poll();
@@ -67,9 +66,9 @@ public class FOLCA {
                             String qk4 = queues.get(i).poll();
                             queues.get(i).add(qk3);
                             queues.get(i).add(qk4);
-                            // String Y = Update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
-                            String Y = Freq_counting(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
-                            ProcessSymbol(i + 1, Y); // add the nonterminal Y to upper tree level
+                            // String Y = update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                            String Y = freqCountingUpdate(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                            processSymbol(i + 1, Y); // add the nonterminal Y to upper tree level
                         }
                     }
                 }
@@ -90,6 +89,8 @@ public class FOLCA {
         for (Map.Entry<String, String> rule : D_r.entrySet()) {
             System.out.println(rule.getKey() + "<-" + rule.getValue());
         }
+
+        // Encode the resulting CFG into a succinct form POPPT
 
         // Get the starting symbol: the root node in the parse tree
         queues.get(queues.size() - 1).poll();
@@ -138,6 +139,7 @@ public class FOLCA {
         System.out.println(stack2);
         System.out.println(inners);
         System.out.println(leaves);
+        poppt_2_txt(bit_stream, leaves);
     }
 
     /**
@@ -146,13 +148,13 @@ public class FOLCA {
      * @param level the level where X is inserted into
      * @param X     input character X
      */
-    public static void ProcessSymbol(int level, String X) {
+    public static void processSymbol(int level, String X) {
         System.out.println("Processing " + X);
         Queue<String> q_k = queues.get(level);
         q_k.add(X);
         System.out.println(queues.toString());
         if (q_k.size() == 4) {
-            if (!Landmark(q_k, 1)) { // build a 2-tree: A -> XY
+            if (!landmark(q_k, 1)) { // build a 2-tree: A -> XY
                 if (level + 1 == queues.size()) { // the queue in the next level is not defined yet
                     // Initiate and add a new queue one level up
                     Queue<String> q_k_plus_1 = new LinkedList<String>();
@@ -167,9 +169,9 @@ public class FOLCA {
                 String qk4 = q_k.poll();
                 q_k.add(qk3);
                 q_k.add(qk4);
-                // String Y = Update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
-                String Y = Freq_counting(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
-                ProcessSymbol(level + 1, Y); // add the nonterminal Y to upper tree level
+                // String Y = update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                String Y = freqCountingUpdate(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                processSymbol(level + 1, Y); // add the nonterminal Y to upper tree level
             }
 
         } else if (q_k.size() == 5) { // build a 2-2-tree: A -> YZ and B -> XA
@@ -188,11 +190,11 @@ public class FOLCA {
             String qk5 = q_k.poll();
             q_k.add(qk4);
             q_k.add(qk5);
-            // String Y = Update(qk4, qk5); // replace q_k[4], q_k[5] with nonterminal Y
-            // String Z = Update(qk3, Y); // replace q_k[3], Y with nonterminal Z
-            String Y = Freq_counting(qk4, qk5); // replace q_k[4], q_k[5] with nonterminal Y
-            String Z = Freq_counting(qk3, Y); // replace q_k[3], Y with nonterminal Z
-            ProcessSymbol(level + 1, Z); // add nonterminal Z to upper tree level
+            // String Y = update(qk4, qk5); // replace q_k[4], q_k[5] with nonterminal Y
+            // String Z = update(qk3, Y); // replace q_k[3], Y with nonterminal Z
+            String Y = freqCountingUpdate(qk4, qk5); // replace q_k[4], q_k[5] with nonterminal Y
+            String Z = freqCountingUpdate(qk3, Y); // replace q_k[3], Y with nonterminal Z
+            processSymbol(level + 1, Z); // add nonterminal Z to upper tree level
         }
 
     }
@@ -205,8 +207,8 @@ public class FOLCA {
      * @param pos position
      * @return whether position pos in q_k is a landmark
      */
-    public static boolean Landmark(Queue<String> q_k, int pos) {
-        System.out.println("Landmark for" + q_k.toString());
+    public static boolean landmark(Queue<String> q_k, int pos) {
+        System.out.println("landmark for" + q_k.toString());
         // Copy the given queue into an array
         String[] qk = new String[q_k.size()];
         for (int j = 0; j < q_k.size(); j++) {
@@ -224,9 +226,6 @@ public class FOLCA {
             } else if (isMinimal(qk, pos) || isMaximal(qk, pos)) { // qk[pos, pos+1] is a minimal/maximal pair
                 System.out.println("3");
                 return true;
-            } else if (isMinimal(qk, pos + 1) || isMaximal(qk, pos + 1)) {// qk[pos+1, pos+2] is a minimal/maximal pair
-                System.out.println("4");
-                return false;
             } else { // qk[pos, pos+2] contains no special pair
                 System.out.println("5");
                 return true;
@@ -289,6 +288,7 @@ public class FOLCA {
      * @return whether queue[i, i+1] is a maximal pair
      */
     public static boolean isMaximal(String[] queue, int pos) {
+        System.out.println("is maximal ? " + pos);
         String s0 = queue[pos - 1];
         String s1 = queue[pos];
         String s2 = queue[pos + 1];
@@ -302,23 +302,47 @@ public class FOLCA {
             return false;
     }
 
-    public static int lca(String i, String j) {
+    /**
+     * Calculate the least common ancestor of the input pair of strings.
+     * 
+     * @param i character
+     * @param j character
+     * @return least common ancestor of (i, j) in the complete binary tree of the
+     *         alphabets
+     */
+    public static long lca(String i, String j) {
+        // Terminals casted into integers
+        long l_i = (i.length() == 1) ? (int) i.charAt(0) : -1;
+        long l_j = (j.length() == 1) ? (int) j.charAt(0) : -1;
+        // Nonterminals converted into integers
+        if (l_i == -1) {
+            l_i = 2 ^ 32 + nonterminal_2_long(i);
+        }
+        if (l_j == -1) {
+            l_j = 2 ^ 32 + nonterminal_2_long(j);
+        }
 
-        return 1;
+        l_i = 2 * l_i - 1;
+        l_j = 2 * l_j - 1;
+        long x = l_i ^ l_j; // bitwise exclusive or
+        return (long) Math.floor(Math.log(x) / Math.log(2));
     }
 
     /**
-     * Return a nonterminal replacing the given digram
+     * Generate a production rule and add to the phrase dictionary
      * 
-     * @param X first symbol in digram
-     * @param Y second symbol in digram
-     * @return the nonterminal that produces the digram
+     * @param X first symbol in pair
+     * @param Y second symbol in pair
+     * @return the nonterminal that produces the pair
      */
-    public static String Update(String X, String Y) {
+    public static String update(String X, String Y) {
         Pair<String, String> rhs = new Pair<>(X, Y);
         String Z = D_r.get(X + Y);
         if (Z == null) { // check if the rhs is in the reverse dictionary
-            Z = get_nonterminal(); // assign a new nonterminal
+
+            // assign a new nonterminal
+            Z = long_2_nonterminal(nonTerminalCounter);
+            nonTerminalCounter++;
             D_r.put(X + Y, Z); // add the new production rule to the reverse dictionary
             if (!D.containsKey(Z)) {
                 D.put(Z, rhs); // add the new production rule to the phrase dictionary
@@ -328,40 +352,41 @@ public class FOLCA {
     }
 
     /**
+     * Similar as update() but removes infrequent production rules
      * 
-     * @param X
-     * @param Y
-     * @return
+     * @param X first symbol in pair
+     * @param Y second symbol in pair
+     * @return the nonterminal that produces the pair
      */
-    public static String Freq_counting(String X, String Y) {
+    public static String freqCountingUpdate(String X, String Y) {
         String Z = D_r.get(X + Y);
         if (Z != null) { // D contains the rule
+            // Increment the frequency by 1
             if (freq_counter.containsKey(Z)) {
                 freq_counter.replace(Z, freq_counter.get(Z) + 1);
             } else {
                 freq_counter.put(Z, 1);
             }
         } else { // D does not contains the rule
-            Z = get_nonterminal();
+            Z = long_2_nonterminal(nonTerminalCounter);
+            nonTerminalCounter++;
             // If the size of the phrase dictionary reached the max size
             if (D.size() >= k) {
                 // Remove infrequent rules
                 while (k * (1 - ep / 100) < D.size()) {
                     Iterator iterator = D.keySet().iterator();
                     while (iterator.hasNext()) {
-
                         String nonterminal = (String) iterator.next();
                         System.out.println(nonterminal);
                         freq_counter.replace(nonterminal, freq_counter.get(nonterminal) - 1);
                         if (freq_counter.get(nonterminal) == 0) {
-                            // D.remove(nonterminal);
                             iterator.remove();
                             freq_counter.remove(nonterminal);
                         }
                     }
                 }
             }
-            // Add new production rules
+            // Add the new production rule
             Pair<String, String> rhs = new Pair<>(X, Y);
             D_r.put(X + Y, Z); // add the new production rule to the reverse dictionary
             if (!D.containsKey(Z))
@@ -373,96 +398,135 @@ public class FOLCA {
     }
 
     /**
-     * Get a nonterminal
+     * Calculate the order of the input nonterminal
      * 
-     * @return a nonterminal
+     * @param nonterminal
+     * @return an integer representing the nonterminal
      */
-    public static String get_nonterminal() {
-        if (non_terminals.size() == 1) {
-            // create more nonterminals
-            String last_nonterminal = non_terminals.remove();
-            non_terminals = populate_nonterminals(last_nonterminal);
-            return last_nonterminal;
-        }
-        return non_terminals.remove();
+    public static long nonterminal_2_long(String nonterminal) {
+        String alphabet = String.valueOf(nonterminal.charAt(0));
+        int a = (int) Integer.valueOf(Arrays.asList(alphabets).indexOf(alphabet));
+        System.out.println(a);
+        long n = (long) Integer.valueOf(nonterminal.substring(1));
+        System.out.println(n);
+        return n * 26 + a;
     }
 
     /**
-     * Initiate or create nonterminals
+     * Get the nonterminal represented by the given integer
      * 
-     * @param last_nonterminal the last unused nonterminal
-     * @return the queue of nonterminals created
+     * @param x an integer
+     * @return the nontermial representing the integer
      */
-    public static Queue<String> populate_nonterminals(String last_nonterminal) {
-        if (last_nonterminal == "") {
-            non_terminals = new LinkedList<>();
-            // Initially create 128 nonterminals
-            for (int i = 0; i < 128; i++) {
-                int n = (int) i / 26;
-                non_terminals.add(alphabets[i % 26] + String.valueOf(n));
-            }
-        } else {
-            // Get the number of nonterminals created so far from the last nonterminal
-            String alphabet = String.valueOf(last_nonterminal.charAt(0));
-            int a = (int) Integer.valueOf(Arrays.asList(alphabets).indexOf(alphabet));
-            System.out.println(a);
-            long n = (long) Integer.valueOf(last_nonterminal.substring(1));
-            System.out.println(n);
-            long next = n * 26 + a + 1;
-            System.out.println(next);
-            // Add double of terminals
-            for (long i = next; i < next * 2; i++) {
-                int x = (int) i / 26;
-                non_terminals.add(alphabets[(int) i % 26] + String.valueOf(x));
-            }
-        }
-        return non_terminals;
+    public static String long_2_nonterminal(long x) {
+        int n = (int) x / 26;
+        return alphabets[(int) x % 26] + String.valueOf(n);
     }
 
     /**
+     * Restruct the text from the POPPT
      * 
      * @param bit_stream bit string representing the POPPT
      * @param leaves     label sequences representing the leaves of the POPPT
      */
-    public static void decompress(Queue<Byte> bit_stream, Queue<String> leaves) {
-        int c = 0;
-        long i = 0;
-        Map<String, Pair<String, String>> D = new HashMap<String, Pair<String, String>>();
+    public static void poppt_2_txt(Queue<Byte> bit_stream, Queue<String> leaves) {
+        int c = 0; // counter for bits '0' and '1'
+        long i = 0; // counter for nonterminals
+        Map<String, Pair<String, String>> Dict = new HashMap<String, Pair<String, String>>();
         Stack<String> S = new Stack<String>();
+        String original_text = "";
         while (!bit_stream.isEmpty()) {
             byte bit = bit_stream.poll();
-            if (bit == 0) {
+            if (bit == 0) { // leaf node
                 c++;
-                S.add(leaves.poll());
-            } else {
+                String leaf = leaves.poll();
+                S.add(leaf);
+                if (leaf.length() == 1) { // terminals
+                    original_text += leaf;
+                } else { // nonterminals
+                    // Recover subtext using Dict
+                    Stack<String> stack1 = new Stack<String>();
+                    stack1.add(leaf);
+                    while (!stack1.isEmpty()) {
+                        String current_node = stack1.pop();
+                        if (Dict.containsKey(current_node)) { // apply the production rule for a nonterminal
+                            Pair<String, String> rhs = Dict.get(current_node);
+                            stack1.add(rhs.first);
+                            stack1.add(rhs.second);
+                        } else { // append to the text for a terminal
+                            original_text += current_node;
+                        }
+                    }
+                }
+                System.out.println("original text so far: " + original_text);
+            } else { // internal node
                 c--;
-                String lhs = S.pop();
-                String rhs = S.pop();
-                Pair<String, String> rule = new Pair<String, String>(lhs, rhs);
-                String x_i = "X" + String.valueOf(i);
-                D.put(x_i, rule);
-                i++;
-                S.add(x_i);
-            }
-            if (c == 0) { //
-                String A = S.pop();
-                Pair<String, String> rule = new Pair<String, String>();
-                // Recover subtext using A and D
+                if (c > 0) {
+                    String lhs = S.pop();
+                    String rhs = S.pop();
+                    Pair<String, String> rule = new Pair<String, String>(lhs, rhs);
+                    String nonterminal = long_2_nonterminal(i);
+                    Dict.put(nonterminal, rule); // record the production rule in the phrase dictionary
+                    i++;
+                    S.add(nonterminal);
+                }
 
             }
+            // Seems useless
+            // if (c == 0) { // finished
+            // System.out.println("Original text recovered: \n" + original_text);
+            // String A = S.pop();
+            // for (Map.Entry<String, Pair<String, String>> rule : Dict.entrySet()) {
+            // System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
+            // rule.getValue().second);
+            // }
+            // }
 
         }
 
     }
 
-    public static void main(String[] args) {
-        // String a = "A23213";
-        // String b = "A2";
-        // String c = "B2";
-        // System.out.println(a.compareTo(b));
-        // System.out.println(b.compareTo(c));
-        // System.out.println(a.compareTo(c));
+    /**
+     * Encode the CFG into POPPT
+     */
+    public static void cfg_2_poppt() {
 
-        Folca();
+    }
+
+    public static void cfg_2_tree() {
+
+    }
+
+    public static void main(String[] args) {
+        while (true) {
+            // Display options
+            System.out.println("1 - Compress (text to succinct grammar)");
+            System.out.println("2 - Visualise (complete grammar)");
+            System.out.println("3 - Visualise (grammar tree)"); // complete or succinct?
+            System.out.println("4 - Decompress (succinct grammar to text)");
+            System.out.println("q - Exit");
+            Scanner input = new Scanner(System.in);
+            String inputs = input.nextLine().toString().trim();
+            if (inputs.isEmpty()) {
+                System.out.println("No option was given\n");
+                break;
+            }
+            switch (inputs.charAt(0)) {
+                case '1':
+                    folca();
+                    break;
+                case '2':
+                    break;
+                case '3':
+                    break;
+                case 'q':
+                    break;
+                default:
+                    System.out.println("Please enter a valid option.\n");
+                    break;
+            }
+            break;
+        }
+
     }
 }
