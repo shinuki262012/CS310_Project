@@ -31,3 +31,4 @@ as other software you may find online.
 javac .\FOLCA.java
 java FOLCA
 file location: ..\test\zip
+javac .\*.java

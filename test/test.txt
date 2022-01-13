@@ -30,4 +30,37 @@ TotalMilliseconds : 109.9495 (map)
 Run command multiple times (powershell)
 for ($i=1; $i -le 3; $i++) { Measure-Command {java Main} }
 
+CFG grammar test: 
+// space and newline
+  aa
+
+
+// CFG
+S00->C0 F0
+F0->D0 E0
+E0->A0 
+
+D0->
+ 
+
+C0->A0 B0
+B0->a a
+A0->   
+// POPPT 
+0010011001001111
+
+  
+a
+a
+
+
+
+
+A0
+
+
+
+
+
+
 
