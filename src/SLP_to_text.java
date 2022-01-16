@@ -1,6 +1,4 @@
-
 import java.io.*;
-// import java.util.*;
 import java.util.ArrayList;
 import java.util.Map; // to store the grammar
 

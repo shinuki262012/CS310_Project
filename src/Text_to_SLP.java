@@ -11,12 +11,11 @@ import java.util.Map; // to store the grammar
 import java.util.HashMap;
 
 /**
- * TODO: heap space
- * 
- *
- * 
+ * Grammar based compression implementation based on Artur Je˙z. “A really
+ * Simple Approximation of Smallest Grammar”.
+ * In: Theoretical Computer Science 616 (Mar. 2014). doi:
+ * 10.1007/978-3-319-07566-2_19.
  */
-
 public class Text_to_SLP {
     public static String[] fresh_letters;
     public static int next_fresh_letter = 0;

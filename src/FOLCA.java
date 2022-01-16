@@ -1,6 +1,6 @@
 import java.util.*;
 
-import javax.print.attribute.standard.PrinterInfo;
+import javax.swing.text.AbstractDocument.LeafElement;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -398,78 +398,128 @@ public class Folca {
     }
 
     /**
-     * Restruct the text from the POPPT
+     * Parse the input .cfg file
      * 
-     * @param bit_stream bit string representing the POPPT
-     * @param leaves     label sequences representing the leaves of the POPPT
+     * @param file input file name
+     * @return the CFG contained in the file
      */
-    public void poppt_2_txt(Queue<Byte> bit_stream, Queue<String> leaves) {
-        int c = 0; // counter for bits '0' and '1'
-        long i = 0; // counter for nonterminals
+    public Map<String, Pair<String, String>> parseCFG(String file) {
         Map<String, Pair<String, String>> Dict = new HashMap<String, Pair<String, String>>();
-        Stack<String> S = new Stack<String>();
-        String original_text = "";
-        while (!bit_stream.isEmpty()) {
-            byte bit = bit_stream.poll();
-            if (bit == 0) { // leaf node
-                c++;
-                String leaf = leaves.poll();
-                S.add(leaf);
-                if (leaf.length() == 1) { // terminals
-                    original_text += leaf;
-                } else { // nonterminals
-                    // Recover subtext using Dict
-                    Stack<String> stack1 = new Stack<String>();
-                    stack1.add(leaf);
-                    while (!stack1.isEmpty()) {
-                        String current_node = stack1.pop();
-                        if (Dict.containsKey(current_node)) { // apply the production rule for a nonterminal
-                            Pair<String, String> rhs = Dict.get(current_node);
-                            stack1.add(rhs.first);
-                            stack1.add(rhs.second);
-                        } else { // append to the text for a terminal
-                            original_text += current_node;
+        // Read the file line by line
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                int counter = 0;
+                String lhs = "";
+                Pair<String, String> rhs = new Pair<String, String>();
+                rhs.first = "";
+                rhs.second = "";
+                // Parse LHS
+                while (counter < line.length()) {
+                    if (line.charAt(counter) != '-') {
+                        lhs += line.charAt(counter);
+                        counter++;
+                    } else {
+                        counter += 2; // consume '->'
+                        break;
+                    }
+                }
+                // Parse RHS
+                if (counter == line.length()) { // rhs.first is newline
+                    rhs.first = "\n";
+                    line = br.readLine(); // read the next line
+                    int c = 1; // consume the space
+                    // Parse rhs.second
+                    if (c == line.length()) { // rhs.second is newline
+                        rhs.second = "\n";
+                        br.readLine();
+                    } else {
+                        while (c < line.length()) {
+                            rhs.second += line.charAt(c);
+                            c++;
+                        }
+                    }
+                } else if (line.charAt(counter) == ' ') { // rhs.first is space
+                    counter++; // consume the space
+                    // Parse rhs.second
+                    if (counter == line.length()) { // rhs.second is newline
+                        rhs.second = "\n";
+                        br.readLine();
+                    } else {
+                        while (counter < line.length()) {
+                            rhs.second += line.charAt(counter);
+                            counter++;
+                        }
+                    }
+                } else { // rhs.first is terminal/nonterminal
+                    while (counter < line.length()) {
+                        if (line.charAt(counter) != ' ') {
+                            rhs.first += line.charAt(counter);
+                            counter++;
+                        } else {
+                            counter++; // consume the space
+                            break;
+                        }
+                    }
+                    // Parse rhs.second
+                    if (counter == line.length()) { // rhs.second is newline
+                        rhs.second = "\n";
+                        br.readLine();
+                    } else {
+                        while (counter < line.length()) {
+                            rhs.second += line.charAt(counter);
+                            counter++;
                         }
                     }
                 }
-                System.out.println("original text so far: " + original_text);
-            } else { // internal node
-                c--;
-                if (c > 0) {
-                    String lhs = S.pop();
-                    String rhs = S.pop();
-                    Pair<String, String> rule = new Pair<String, String>(lhs, rhs);
-                    String nonterminal = long_2_nonterminal(i);
-                    Dict.put(nonterminal, rule); // record the production rule in the phrase dictionary
-                    i++;
-                    S.add(nonterminal);
-                }
-
+                // Add production rule
+                Dict.put(lhs, rhs);
             }
-            // Seems useless
-            // if (c == 0) { // finished
-            // System.out.println("Original text recovered: \n" + original_text);
-            // String A = S.pop();
-            // for (Map.Entry<String, Pair<String, String>> rule : Dict.entrySet()) {
-            // System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
-            // rule.getValue().second);
-            // }
-            // }
-
+        } catch (Exception e) {
+            System.out.println("Failed to read the file");
+            // e.printStackTrace();
         }
-
+        return Dict;
     }
 
     /**
-     * Encode the CFG into POPPT and store into file
+     * Parse the input .slp file
+     * 
+     * @param file input file name
+     * @return the POPPT contained in the file
+     */
+    @SuppressWarnings({ "unchecked" })
+    public LinkedList<String> parsePOPPT(String file) {
+        LinkedList<String> encoding = new LinkedList<String>();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+            try {
+                FileInputStream fin = new FileInputStream(file);
+                ObjectInputStream oin = new ObjectInputStream(fin);
+                encoding = (LinkedList<String>) oin.readObject();
+                oin.close();
+                System.out.println(encoding.toString());
+            } catch (Exception e) {
+                System.err.println("Failed to read the file");
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to read the file");
+        }
+        return encoding;
+    }
+
+    /**
+     * Convert CFG to POPPT and store to the file
+     * 
+     * @param cfgDict CFG dictionary
+     * @param file    file to store the converted POPPT
      */
     public void cfg_2_poppt(Map<String, Pair<String, String>> cfgDict, String file) {
         try {
-            PrintWriter output = new PrintWriter(file + ".slp");
-
             // Build a POPPT out of the POSLP
-            Queue<Byte> bit_stream = new LinkedList<>();
-            Queue<String> leaves = new LinkedList<>();
+            LinkedList<Byte> bit_stream = new LinkedList<>();
+            LinkedList<String> leaves = new LinkedList<>();
             ArrayList<String> inners = new ArrayList<>();
             ArrayList<Boolean> inner_appeared_twice = new ArrayList<>();
             // Set of non terminals, each rule is to be applied once
@@ -496,126 +546,167 @@ public class Folca {
                     stack2.add(current_node);
                     if (inners.contains(current_node) && !inner_appeared_twice.get(inners.indexOf(current_node))) {
                         inner_appeared_twice.set(inners.indexOf(current_node), true);
-                        output.print((byte) 1);
                         bit_stream.add((byte) 1);
                     } else {
                         leaves.add(current_node);
-                        output.print((byte) 0);
                         bit_stream.add((byte) 0);
                     }
                 }
             }
             bit_stream.add((byte) 1);// add an extra virtual node
-            output.print((byte) 1);
-            output.println();
-            // Output leaves to the file
-            for (String leaf : leaves) {
-                output.println(leaf);
+            StringBuilder stream = new StringBuilder(); // convert the bit stream into a string
+            for (Byte b : bit_stream) {
+                stream.append(b);
             }
-            output.close();
-            // System.out.println(bit_stream);
+            System.out.println("bit stream: " + stream);
+            leaves.addFirst(stream.toString()); // add the bit stream to the encoding
+            // Output encoding to the file
+            FileOutputStream fout = new FileOutputStream(file + ".slp");
+            ObjectOutputStream oout = new ObjectOutputStream(fout);
+            oout.writeObject(leaves);
+            oout.close();
+
             // System.out.println(stack2);
             // System.out.println(inners);
-            // System.out.println(leaves);
-
-            poppt_2_txt(bit_stream, leaves);
+            System.out.println(leaves.toString());
         } catch (Exception e) {
             System.out.println("Failed to save the output");
         }
     }
 
+    /**
+     * Convert the CFG into POPPT and return the POPPT
+     * 
+     * @param cfgDict CFG dictionary
+     * @return the converted POPPT
+     */
+    public LinkedList<String> cfg_2_poppt(Map<String, Pair<String, String>> cfgDict) {
+        // Build a POPPT out of the POSLP
+        LinkedList<Byte> bit_stream = new LinkedList<>();
+        LinkedList<String> leaves = new LinkedList<>();
+        ArrayList<String> inners = new ArrayList<>();
+        ArrayList<Boolean> inner_appeared_twice = new ArrayList<>();
+
+        // 2 stacks used for the post order traversal
+        Stack<String> stack1 = new Stack<String>();
+        Stack<String> stack2 = new Stack<String>();
+        stack1.add("S00"); // add the start symbol
+        while (!stack1.isEmpty()) {
+            String current_node = stack1.peek();
+            if (cfgDict.containsKey(current_node)) { // apply the known rule
+                inners.add(current_node);
+                inner_appeared_twice.add(false);
+                Pair<String, String> rhs = cfgDict.get(current_node);
+                stack1.add(rhs.second);
+                stack1.add(rhs.first);
+                // Remove the applied rule
+                cfgDict.remove(current_node);
+
+            } else { // repeated nonterminals, or leave terminals
+                stack1.pop();
+                stack2.add(current_node);
+                if (inners.contains(current_node) && !inner_appeared_twice.get(inners.indexOf(current_node))) {
+                    inner_appeared_twice.set(inners.indexOf(current_node), true);
+                    bit_stream.add((byte) 1);
+                } else {
+                    leaves.add(current_node);
+                    bit_stream.add((byte) 0);
+                }
+            }
+        }
+        bit_stream.add((byte) 1);// add an extra virtual node
+        StringBuilder stream = new StringBuilder(); // convert the bit stream into a string
+        for (Byte b : bit_stream) {
+            stream.append(b);
+        }
+        leaves.addFirst(stream.toString()); // add the bit stream to the encoding
+
+        System.out.println(leaves.toString());
+        return leaves;
+    }
+
+    // TODO
     public void cfg_2_tree() {
 
     }
 
-    public Map<String, Pair<String, String>> parseCFG(String file) {
-        Map<String, Pair<String, String>> Dict = new HashMap<String, Pair<String, String>>();
-        // Read the file line by line
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String lhs = "";
-                Pair<String, String> rhs = new Pair<String, String>();
-                rhs.first = "";
-                rhs.second = "";
-                int counter = 0;
-                // Parse LHS
-                while (counter < line.length()) {
-                    if (line.charAt(counter) != '-') {
-                        lhs += line.charAt(counter);
-                        counter++;
-                    } else {
-                        counter += 2;
-                        break;
-                    }
-                }
-                // Parse RHS
-                if (counter == line.length()) { // rhs.first is newline
-                    rhs.first = "\n";
-                    line = br.readLine(); // read the next line
-                    // Consume the space
-                    int c = 1;
-                    // Parse rhs.second
-                    if (c == line.length()) { // rhs.second is newline
-                        rhs.second = "\n";
-                        br.readLine();
-                    } else {
-                        while (c < line.length()) {
-                            rhs.second += line.charAt(c);
-                            c++;
-                        }
-                    }
-                } else if (line.charAt(counter) == ' ') { // rhs.first is space
-                    // Consume the space
-                    counter++;
-                    // Parse rhs.second
-                    if (counter == line.length()) { // rhs.second is newline
-                        rhs.second = "\n";
-                        br.readLine();
-                    } else {
-                        while (counter < line.length()) {
-                            rhs.second += line.charAt(counter);
-                            counter++;
-                        }
-                    }
-                } else { // rhs.first is terminal/nonterminal
-                    while (counter < line.length()) {
-                        if (line.charAt(counter) != ' ') {
-                            rhs.first += line.charAt(counter);
-                            counter++;
-                        } else {
-                            // Consume the space
-                            counter++;
-                            break;
-                        }
-                    }
-                    // Parse rhs.second
-                    if (counter == line.length()) { // rhs.second is newline
-                        rhs.second = "\n";
-                        br.readLine();
-                    } else {
-                        while (counter < line.length()) {
-                            rhs.second += line.charAt(counter);
-                            counter++;
-                        }
-                    }
-                }
-                // Add production rule
-                Dict.put(lhs, rhs);
-            }
-        } catch (Exception e) {
-            System.out.println("Failed to read the file");
-            // e.printStackTrace();
+    /**
+     * Decompress the POPPT into text, and store to the file
+     * 
+     * @param encoding POPPT encoding
+     * @param file     target file
+     */
+    public void poppt_2_txt(LinkedList<String> encoding, String file) {
+        // Restore the bit stream
+        LinkedList<Byte> bit_stream = new LinkedList<>();
+        for (String s : encoding.removeFirst().split("")) {
+            bit_stream.add(Byte.parseByte(s));
         }
-        return Dict;
-    }
+        int c = 0; // counter for bits '0' and '1'
+        long i = 0; // counter for nonterminals
+        Map<String, Pair<String, String>> Dict = new HashMap<String, Pair<String, String>>();
+        Stack<String> S = new Stack<String>();
+        try {
+            String original_text = "";
+            PrintWriter output = new PrintWriter(file + "(1)");
+            while (!bit_stream.isEmpty()) {
+                byte bit = bit_stream.poll();
+                if (bit == 0) { // leaf node
+                    c++;
+                    String leaf = encoding.poll();
+                    S.add(leaf);
+                    if (leaf.length() == 1) { // terminals
+                        original_text += leaf;
+                        output.print(leaf);
+                    } else { // nonterminals
+                        // Recover subtext using Dict
+                        Stack<String> stack1 = new Stack<String>();
+                        stack1.add(leaf);
+                        while (!stack1.isEmpty()) {
+                            String current_node = stack1.pop();
+                            if (Dict.containsKey(current_node)) { // apply the production rule for a nonterminal
+                                Pair<String, String> rhs = Dict.get(current_node);
+                                stack1.add(rhs.first);
+                                stack1.add(rhs.second);
+                            } else { // append to the text for a terminal
+                                original_text += current_node;
+                                output.print(current_node);
+                            }
+                        }
+                    }
+                    // System.out.println("original text so far: " + original_text);
+                } else { // internal node
+                    c--;
+                    if (c > 0) {
+                        String lhs = S.pop();
+                        String rhs = S.pop();
+                        Pair<String, String> rule = new Pair<String, String>(lhs, rhs);
+                        String nonterminal = long_2_nonterminal(i);
+                        Dict.put(nonterminal, rule); // record the production rule in the phrase dictionary
+                        i++;
+                        S.add(nonterminal);
+                    }
 
-    public void parsePOPPT() {
-        // TODO
+                }
+                // Seems useless
+                // if (c == 0) { // finished
+                // System.out.println("Original text recovered: \n" + original_text);
+                // String A = S.pop();
+                // for (Map.Entry<String, Pair<String, String>> rule : Dict.entrySet()) {
+                // System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
+                // rule.getValue().second);
+                // }
+                // }
+            }
+            output.close();
+        } catch (Exception e) {
+            System.err.println("Failed to save the output");
+        }
+
     }
 
     public static void main(String[] args) {
-        Folca myFolca = new Folca();
+        Folca f = new Folca();
         while (true) {
             // Display options
             System.out.println("1 - text to succinct grammar");
@@ -634,18 +725,18 @@ public class Folca {
             switch (inputs.charAt(0)) {
                 case '1':
                     // text -> cfg -> enc
-                    myFolca.folca(false);
+                    f.folca(false);
                     break;
                 case '2':
                     // text -> cfg
-                    myFolca.folca(true);
+                    f.folca(true);
                     break;
                 case '3':
                     // cfg -> enc
                     System.out.println("Choose the file to convert: ");
                     String file = input.nextLine();
                     // Get input cfg
-                    Map<String, Pair<String, String>> cfg = myFolca.parseCFG(file);
+                    Map<String, Pair<String, String>> cfg = f.parseCFG(file);
                     for (Map.Entry<String, Pair<String, String>> rule : cfg.entrySet()) {
                         System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
                                 rule.getValue().second);
@@ -653,18 +744,34 @@ public class Folca {
                     // Get the file name
                     file = file.substring(0, file.length() - 4);
                     // Encode cfg
-                    myFolca.cfg_2_poppt(cfg, file);
+                    f.cfg_2_poppt(cfg, file);
                     break;
                 case '4':
                     break;
                 case '5':
-                    // get input as a .SLP file
-                    // myFolca.poppt_2_txt();
-
+                    // Get input file
+                    System.out.println("Choose the file to convert: ");
+                    file = input.nextLine();
+                    // Check file format
+                    if (!file.substring(file.length() - 4, file.length()).equals(".slp")) {
+                        System.err.println("Wrong file type, please select a file of type .slp");
+                    } else {
+                        // poppt -> text
+                        f.poppt_2_txt(f.parsePOPPT(file), file.substring(0, file.length() - 4));
+                    }
                     break;
                 case '6':
-                    // cfg -> enc
-                    // enc -> text
+                    // Get input file
+                    System.out.println("Choose the file to convert: ");
+                    file = input.nextLine();
+                    // Check file format
+                    if (!file.subSequence(file.length() - 4, file.length()).equals(".cfg")) {
+                        System.err.println("Wrong file type, please select a file of type .cfg");
+                    } else {
+                        // cfg -> poppt -> text
+                        f.poppt_2_txt(f.cfg_2_poppt(f.parseCFG(file)),
+                                file.substring(0, file.length() - 4) + "(1)");
+                    }
                     break;
                 case 'q':
                     break;
