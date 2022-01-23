@@ -1,5 +1,6 @@
 import java.io.*;
 // import java.util.*;
+import java.util.Scanner;
 import java.util.Queue;
 import java.util.TreeMap;
 import java.util.function.IntPredicate;
@@ -7,33 +8,32 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map; // to store the grammar
+import java.util.Map;
 import java.util.HashMap;
 
 /**
- * TODO: heap space
- * 
- *
- * 
+ * Grammar based compression implementation based on Artur Je˙z. "A really
+ * Simple Approximation of Smallest Grammar".
+ * In: Theoretical Computer Science 616 (Mar. 2014). doi:
+ * 10.1007/978-3-319-07566-2_19.
  */
-
 public class Text_to_SLP {
-    public static Queue<String> fresh_letters;
-    public static Map<String, Pair<String, String>> grammar = new HashMap<String, Pair<String, String>>(); // resulting
+    public static long nonTerminalCounter = 0; // counter for nonterminals
+    public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
+            "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+
+    public static Map<String, Pair<String, String>> grammar = new HashMap<String, Pair<String, String>>();
 
     /**
      * Text to Grammar
-     * 
-     * @param input String input
-     * @return An array list representation of the grammar
      */
-    public static Map<String, Pair<String, String>> TtoG(String input) {
+    public Map<String, Pair<String, String>> TtoG(String input) {
         int w = input.length();
         // Compute the LZ77 factorization of the input
         Factorization fac = new Factorization();
         ArrayList<Pair<Integer, Integer>> factorization = fac.factorization(input);
         // Initialise tables start, end and pair
-        int[] start = new int[w]; // stores beginning of factors, -1::not the beginning of a factor
+        int[] start = new int[w]; // stores beginning of factors, -1: not the beginning of a factor
         int[] end = new int[w]; // stores ends of factors: 1/-1 -> whether w[i] is the last letter of a factor
         int[] pair = new int[w]; // stores pairing, 0: unpaired; 1: first in a pair; 2: second in a pair
         Arrays.fill(start, -1);
@@ -63,42 +63,32 @@ public class Text_to_SLP {
             }
         }
 
-        fresh_letters = new LinkedList<>();
-        String[] alphabets = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R",
-                "S", "T", "U", "V", "W", "X", "Y", "Z" };
-
-        // Cosntruct the fresh letters, in the form of Xi, where i is an interger
-        for (int f = 0; f < 2 * w; f++) {
-            int n = (int) f / 26;
-            // System.out.println(alphabets[f % 26] + Integer.toString(n));
-            fresh_letters.add(alphabets[f % 26] + Integer.toString(n));
-        }
-
         String[] input_array = input.split("");
 
         // Add rules for all terminals
-        Map<String, String> terminalRules = new HashMap<String, String>(); // rules of form X -> a
+        Map<String, String> reversedTerminalRules = new HashMap<String, String>(); // rules of form X -> a
         for (int i = 0; i < input_array.length; i++) {
             // Check if the character has appeared in the grammar
-            if (terminalRules.get(input_array[i]) == null) {
+            if (reversedTerminalRules.get(input_array[i]) == null) {
                 // Add a grammar rule
-                String nonTerminal = fresh_letters.remove();
+                String nonTerminal = long_2_nonterminal(nonTerminalCounter);
+                nonTerminalCounter++;
                 if (input_array[i].equals(" "))
-                    terminalRules.put("' '", nonTerminal);
+                    reversedTerminalRules.put("' '", nonTerminal);
                 else if (input_array[i].equals("\n"))
-                    terminalRules.put("\\n", nonTerminal);
+                    reversedTerminalRules.put("\\n", nonTerminal);
                 else
-                    terminalRules.put(input_array[i], nonTerminal);
+                    reversedTerminalRules.put(input_array[i], nonTerminal);
                 input_array[i] = nonTerminal;
             } else {
                 // replace the character with the nonterminal
-                input_array[i] = terminalRules.get(input_array[i]);
+                input_array[i] = reversedTerminalRules.get(input_array[i]);
             }
         }
 
-        // System.out.println(terminalRules.toString());
+        // System.out.println(reversedTerminalRules.toString());
         // Reverse the terminal rules
-        for (Map.Entry<String, String> rule : terminalRules.entrySet()) {
+        for (Map.Entry<String, String> rule : reversedTerminalRules.entrySet()) {
             Pair<String, String> rhs = new Pair<String, String>(rule.getKey(), "");
             grammar.put(rule.getValue(), rhs);
         }
@@ -120,32 +110,13 @@ public class Text_to_SLP {
             // System.out.println("Pairing: input: " + String.join("", input_array));
         }
 
-        // Set the start symbol to S
-        String start_symbol;
-        String last_letter = fresh_letters.remove();
-        // System.out.println("last leter is :" + last_letter);
-        char letter = last_letter.charAt(0);
-        String number = last_letter.substring(1);
-        // The previous one of An is Zn-1
-        if (letter == 'A') {
-            Integer n = Integer.valueOf(number);
-            int n1 = (int) n;
-            start_symbol = "Z" + Integer.toString(n1 - 1);
-            // System.out.println(start_symbol);
-        }
-        // The previous of Bn is An
-        else {
-            int ascii = (int) letter;
-            start_symbol = ((char) (ascii - 1)) + number;
-            // System.out.println(start_symbol);
-        }
-
-        // Change the start symbol to S
-        grammar.put("S", grammar.get(start_symbol));
+        String start_symbol = long_2_nonterminal(nonTerminalCounter - 1);
+        // Change the start symbol to S00
+        grammar.put("S00", grammar.get(start_symbol));
         grammar.remove(start_symbol);
 
         // Print grammar
-        // System.out.println("Final grammar: ");
+        System.out.println("Final grammar: ");
         for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
             String L = rule.getValue().first;
             String R = rule.getValue().second;
@@ -157,17 +128,16 @@ public class Text_to_SLP {
         }
 
         // Check grammar by decompressing and compare
-        SLP_to_text decompresser = new SLP_to_text();
-        String decompressed_string = decompresser.GtoT(grammar);
+        // SLP_to_text decompresser = new SLP_to_text();
+        // String decompressed_string = decompresser.GtoT(grammar);
         // System.out.println(decompressed_string);
         // if (decompressed_string.equals(input))
         // System.out.println("YES");
-
         // Return the constructed grammar
         return grammar;
     }
 
-    public static void Pairing(String[] input, int[] start, int[] end, int[] pair) {
+    public void Pairing(String[] input, int[] start, int[] end, int[] pair) {
         int w = input.length;
         // System.out.println(input.length);
         // System.out.println("Pairing: input: " + String.join("", input));
@@ -225,7 +195,7 @@ public class Text_to_SLP {
         return;
     }
 
-    public static String[] PairReplacement(String[] input, int[] start, int[] end, int[] pair) {
+    public String[] PairReplacement(String[] input, int[] start, int[] end, int[] pair) {
         // TODO space complexity increased
         String[] inputP = new String[input.length]; // the new word after replacing the pairing
 
@@ -275,7 +245,8 @@ public class Text_to_SLP {
                         i++; // move by this letter to the right
                         iP++;
                     } else {
-                        String nonTerminal = fresh_letters.remove();
+                        String nonTerminal = long_2_nonterminal(nonTerminalCounter);
+                        nonTerminalCounter++;
                         Pair<String, String> rhs = new Pair<String, String>(input[i], input[i + 1]);
                         inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
                         // System.out.println("1 input: " + String.join("", input));
@@ -290,7 +261,34 @@ public class Text_to_SLP {
         return Arrays.copyOfRange(inputP, 0, iP);
     }
 
+    /**
+     * Calculate the order of the input nonterminal
+     * 
+     * @param nonterminal
+     * @return an integer representing the nonterminal
+     */
+    public long nonterminal_2_long(String nonterminal) {
+        String alphabet = String.valueOf(nonterminal.charAt(0));
+        int a = (int) Integer.valueOf(Arrays.asList(alphabets).indexOf(alphabet));
+        // System.out.println(a);
+        long n = (long) Integer.valueOf(nonterminal.substring(1));
+        // System.out.println(n);
+        return n * 26 + a;
+    }
+
+    /**
+     * Get the nonterminal represented by the given integer
+     * 
+     * @param x an integer
+     * @return the nontermial representing the integer
+     */
+    public String long_2_nonterminal(long x) {
+        int n = (int) x / 26;
+        return alphabets[(int) x % 26] + String.valueOf(n);
+    }
+
     public static void main(String[] args) {
+        Text_to_SLP t = new Text_to_SLP();
         String input = "zzzzzipzip";
         // String input = "aabbabbbasdasb";
         // String input = "aabbabbbasdaassbacdgkl"; // tests Z0 as the start symbol
@@ -298,7 +296,41 @@ public class Text_to_SLP {
         // String input =
         // "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
         // String input = "aaaaaaaaaaaa";
-        TtoG(input);
+
+        // t.TtoG(input);
+        while (true) {
+            // Display options
+            System.out.println("1 - text to succinct grammar");
+            System.out.println("2 - text to cfg");
+            System.out.println("3 - cfg to succinct grammar");
+            System.out.println("4 - cfg to grammar tree");
+            System.out.println("5 - succinct grammar to text");
+            System.out.println("6 - cfg to text");
+            System.out.println("q - Exit");
+            Scanner s = new Scanner(System.in);
+            String inputs = s.nextLine().toString().trim();
+            if (inputs.isEmpty()) {
+                System.out.println("No option was given\n");
+                break;
+            }
+            switch (inputs.charAt(0)) {
+                case '1':
+                    break;
+                case '2':
+                    break;
+                case '3':
+                    break;
+                case '4':
+                    break;
+                case '5':
+                    break;
+                case '6':
+                    break;
+                case 'q':
+                    break;
+            }
+        }
+
     }
 
 }

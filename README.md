@@ -1,6 +1,8 @@
 # CS310_Project
+
 ## Algorithms for compressed text
-### Tianlong Zhong 
+
+### Tianlong Zhong
 
 Efficient compression algorithms and transformations between SLP and LZ77 representations.
 <!-- 
@@ -25,4 +27,3 @@ benefit from and build on previous works on the subject, such as
 partial implementations in the projects that my project students have
 worked on in the previous years (I'll share the links with you) as well
 as other software you may find online.
- -->
