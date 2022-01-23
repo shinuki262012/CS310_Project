@@ -74,7 +74,7 @@ public class Main {
         System.out.println("1 - offline \n2 - online");
         Scanner choice = new Scanner(System.in);
         char option = choice.nextLine().toString().trim().charAt(0);
-        choice.close();
+        // choice.close();
         if (option == '1') {
             // Offline version
             System.out.println("Choose the file to convert: ");
@@ -138,41 +138,11 @@ public class Main {
         } else if (option == '2') {
             // Online version
             folca = new Folca();
-            while (true) {
-                // Display options
-                System.out.println("1 - text to succinct grammar");
-                System.out.println("2 - text to cfg");
-                System.out.println("3 - cfg to succinct grammar");
-                System.out.println("4 - cfg to grammar tree");
-                System.out.println("5 - succinct grammar to text");
-                System.out.println("6 - cfg to text");
-                System.out.println("q - Exit");
-                Scanner input = new Scanner(System.in);
-                String inputs = input.nextLine().toString().trim();
-                input.close();
-                if (inputs.isEmpty()) {
-                    System.out.println("No option was given\n");
-                    break;
-                }
-                switch (inputs.charAt(0)) {
-                    case '1':
-                        break;
-                    case '2':
-                        break;
-                    case '3':
-                        break;
-                    case 'q':
-                        break;
-                    default:
-                        System.out.println("Please enter a valid option.\n");
-                        break;
-                }
-                break;
-            }
+            folca.main(null);
         } else {
             System.out.println("Please enter a valid option");
         }
-
+        choice.close();
     }
 
 }
