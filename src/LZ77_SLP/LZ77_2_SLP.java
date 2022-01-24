@@ -1,3 +1,5 @@
+package LZ77_SLP;
+
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.util.zip.GZIPInputStream;
@@ -10,7 +12,7 @@ public class LZ77_2_SLP {
 
     public void parseLZ77() {
         try {
-            InputStream fileInputStream = new FileInputStream("..\\test\\t.gz");
+            InputStream fileInputStream = new FileInputStream("..\\test\\tt.gz");
             int headerLength = lz.readHeader(fileInputStream);
             System.out.println("Header length: " + headerLength);
 
@@ -32,4 +34,4 @@ public class LZ77_2_SLP {
     public static void main(String[] args) {
         new LZ77_2_SLP().parseLZ77();
     }
-}⊦⊣⊢⊣
+}
