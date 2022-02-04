@@ -729,7 +729,7 @@ public class Folca {
                     break;
                 case '2':
                     // text -> cfg
-                    f.folca(true);
+                    f.folca(true);                                 
                     break;
                 case '3':
                     // cfg -> enc
