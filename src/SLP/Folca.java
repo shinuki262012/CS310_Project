@@ -1,21 +1,20 @@
 package SLP;
 
-import java.util.*;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
  * Fully Online LCA implementation based on S. Maruyama and Y. Tabei,
  * "Fully Online Grammar Compression in Constant Space," 2014 Data Compression
  * Conference, 2014, pp. 173-182, doi: 10.1109/DCC.2014.69.
- * 
+ *
  */
 public class Folca {
     public static Scanner input;
     public static ArrayList<Queue<String>> queues = new ArrayList<>(); // queues used for processing symbols
     public static Map<String, Pair<String, String>> D = new HashMap<String, Pair<String, String>>(); // phrase
-                                                                                                     // dictionary
+    // dictionary
     public static Map<String, Integer> freq_counter = new HashMap<String, Integer>(); // frequency counter
     public static int k = 1024; // max size of the pharse dictionary
     public static double ep = 5; // vacancy rate
@@ -28,7 +27,9 @@ public class Folca {
     /**
      * Fully Online LCA implementation
      * Online algorithm that compresses the input text into SLP in the form of CFG
-     * 
+     *
+     *
+     *
      * @param output_cfg whether to output a cfg or encoded cfg
      */
     public void folca(boolean output_cfg) {
@@ -84,8 +85,12 @@ public class Folca {
         }
         // DELETE
         for (Map.Entry<String, Pair<String, String>> rule : D.entrySet()) {
-            System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
-                    rule.getValue().second);
+            System.out.println(
+                    rule.getKey() +
+                            "->" +
+                            rule.getValue().first +
+                            " " +
+                            rule.getValue().second);
         }
         for (Map.Entry<String, String> rule : D_r.entrySet()) {
             System.out.println(rule.getKey() + "<-" + rule.getValue());
@@ -107,8 +112,12 @@ public class Folca {
             try {
                 PrintWriter output = new PrintWriter(file + ".cfg");
                 for (Map.Entry<String, Pair<String, String>> rule : D.entrySet()) {
-                    output.println(rule.getKey() + "->" + rule.getValue().first + " " +
-                            rule.getValue().second);
+                    output.println(
+                            rule.getKey() +
+                                    "->" +
+                                    rule.getValue().first +
+                                    " " +
+                                    rule.getValue().second);
                 }
                 System.out.println("Output successfully saved to " + file + ".cfg");
                 output.close();
@@ -124,7 +133,9 @@ public class Folca {
 
     /**
      * Process the given character X inserted into the given level
-     * 
+     *
+     *
+     *
      * @param level the level where X is inserted into
      * @param X     input character X
      */
@@ -153,7 +164,6 @@ public class Folca {
                 String Y = freqCountingUpdate(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
                 processSymbol(level + 1, Y); // add the nonterminal Y to upper tree level
             }
-
         } else if (q_k.size() == 5) { // build a 2-2-tree: A -> YZ and B -> XA
             if (level + 1 == queues.size()) { // the queue in the next level is not defined yet
                 // Initiate and add a new queue one level up
@@ -176,13 +186,14 @@ public class Folca {
             String Z = freqCountingUpdate(qk3, Y); // replace q_k[3], Y with nonterminal Z
             processSymbol(level + 1, Z); // add nonterminal Z to upper tree level
         }
-
     }
 
     /**
      * Decide whether position pos in q_k is a landmark: the pair q_k[pos, pos+1] is
      * replaced or not
-     * 
+     *
+     *
+     *
      * @param q_k substring of length 4: q_k[pos-1, pos, pos+1, pos+2]
      * @param pos position
      * @return whether position pos in q_k is a landmark
@@ -206,14 +217,15 @@ public class Folca {
             } else { // qk[pos, pos+2] contains no special pair
                 return true;
             }
-
         }
     }
 
     /**
      * queue = {i-1, i, i+1, i+2}, check if queue[i, i+1] is a minimal pair
      * queue[i, i+1] is a minimal pair if queue[i+1] < queue[i], queue[i+2]
-     * 
+     *
+     *
+     *
      * @param queue given queue of length 4
      * @param pos   given position
      * @return whether queue[i, i+1] is a minimal pair
@@ -224,15 +236,21 @@ public class Folca {
             // [terminal, terminal, ?]
             if (queue[pos - 1].length() == 1) {
                 if (queue[pos + 1].length() == 1) { // [terminal, terminal, terminal]
-                    return ((((int) queue[pos].charAt(0)) < ((int) queue[pos - 1].charAt(0)))
-                            && (((int) queue[pos].charAt(0)) < ((int) queue[pos + 1].charAt(0)))) ? true : false;
+                    return ((((int) queue[pos].charAt(0)) < ((int) queue[pos - 1].charAt(0))) &&
+                            (((int) queue[pos].charAt(0)) < ((int) queue[pos + 1].charAt(0))))
+                                    ? true
+                                    : false;
                 } else { // [terminal, terminal, nonterminal]
-                    return (((int) queue[pos].charAt(0)) < ((int) queue[pos - 1].charAt(0))) ? true : false;
+                    return (((int) queue[pos].charAt(0)) < ((int) queue[pos - 1].charAt(0)))
+                            ? true
+                            : false;
                 }
             }
             // [nonterminal, terminal, terminal]
             else if (queue[pos + 1].length() == 1) {
-                return (((int) queue[pos].charAt(0)) < ((int) queue[pos + 1].charAt(0))) ? true : false;
+                return (((int) queue[pos].charAt(0)) < ((int) queue[pos + 1].charAt(0)))
+                        ? true
+                        : false;
             }
             // [nonterminal, terminal, nonterminal]
             else {
@@ -247,8 +265,10 @@ public class Folca {
             }
             // [nonterminal, nonterminal, nonterminal]
             else {
-                return (queue[pos].compareTo(queue[pos - 1]) < 0 && queue[pos].compareTo(queue[pos + 1]) < 0) ? true
-                        : false;
+                return (queue[pos].compareTo(queue[pos - 1]) < 0 &&
+                        queue[pos].compareTo(queue[pos + 1]) < 0)
+                                ? true
+                                : false;
             }
         }
     }
@@ -258,7 +278,9 @@ public class Folca {
      * queue[i, i+1] is a maximal pair if queue[i-1, i+2] is in an
      * incresing/decreasing order, and lca(queue[i, i+1]) > lca(queue[i-1, i]),
      * lca(queue[i+1, i+2])
-     * 
+     *
+     *
+     *
      * @param queue given queue of length 4
      * @param pos   given position
      * @return whether queue[i, i+1] is a maximal pair
@@ -269,17 +291,20 @@ public class Folca {
         String s2 = queue[pos + 1];
         String s3 = queue[pos + 2];
         // Check if the queue is in increasing/decreasing order
-        if ((s0.compareTo(s1) < 0 && s1.compareTo(s2) < 0 && s2.compareTo(s3) < 0)
-                || (s0.compareTo(s1) > 0 && s1.compareTo(s2) > 0 && s2.compareTo(s3) > 0)) {
-
-            return (((lca(s1, s2)) > lca(s0, s1)) && ((lca(s1, s2)) > lca(s2, s3))) ? true : false;
+        if ((s0.compareTo(s1) < 0 && s1.compareTo(s2) < 0 && s2.compareTo(s3) < 0) ||
+                (s0.compareTo(s1) > 0 && s1.compareTo(s2) > 0 && s2.compareTo(s3) > 0)) {
+            return (((lca(s1, s2)) > lca(s0, s1)) && ((lca(s1, s2)) > lca(s2, s3)))
+                    ? true
+                    : false;
         } else
             return false;
     }
 
     /**
      * Calculate the least common ancestor of the input pair of strings.
-     * 
+     *
+     *
+     *
      * @param i character
      * @param j character
      * @return least common ancestor of (i, j) in the complete binary tree of the
@@ -305,7 +330,9 @@ public class Folca {
 
     /**
      * Generate a production rule and add to the phrase dictionary
-     * 
+     *
+     *
+     *
      * @param X first symbol in pair
      * @param Y second symbol in pair
      * @return the nonterminal that produces the pair
@@ -314,7 +341,6 @@ public class Folca {
         Pair<String, String> rhs = new Pair<>(X, Y);
         String Z = D_r.get(X + Y);
         if (Z == null) { // check if the rhs is in the reverse dictionary
-
             // assign a new nonterminal
             Z = long_2_nonterminal(nonTerminalCounter);
             nonTerminalCounter++;
@@ -328,7 +354,9 @@ public class Folca {
 
     /**
      * Similar as update() but removes infrequent production rules
-     * 
+     *
+     *
+     *
      * @param X first symbol in pair
      * @param Y second symbol in pair
      * @return the nonterminal that produces the pair
@@ -388,7 +416,7 @@ public class Folca {
 
     /**
      * Get the nonterminal represented by the given integer
-     * 
+     *
      * @param x an integer
      * @return the nontermial representing the integer
      */
@@ -399,7 +427,7 @@ public class Folca {
 
     /**
      * Parse the input .cfg file
-     * 
+     *
      * @param file input file name
      * @return the CFG contained in the file
      */
@@ -484,15 +512,16 @@ public class Folca {
 
     /**
      * Parse the input .slp file
-     * 
+     *
      * @param file input file name
      * @return the POPPT contained in the file
      */
     @SuppressWarnings({ "unchecked" })
     public LinkedList<String> parsePOPPT(String file) {
         LinkedList<String> encoding = new LinkedList<String>();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+        try (
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
             try {
                 FileInputStream fin = new FileInputStream(file);
                 ObjectInputStream oin = new ObjectInputStream(fin);
@@ -511,7 +540,7 @@ public class Folca {
 
     /**
      * Convert CFG to POPPT and store to the file
-     * 
+     *
      * @param cfgDict CFG dictionary
      * @param file    file to store the converted POPPT
      */
@@ -540,11 +569,11 @@ public class Folca {
                     stack1.add(rhs.first);
                     // Remove the applied rule
                     cfgDict.remove(current_node);
-
                 } else { // repeated nonterminals, or leave terminals
                     stack1.pop();
                     stack2.add(current_node);
-                    if (inners.contains(current_node) && !inner_appeared_twice.get(inners.indexOf(current_node))) {
+                    if (inners.contains(current_node) &&
+                            !inner_appeared_twice.get(inners.indexOf(current_node))) {
                         inner_appeared_twice.set(inners.indexOf(current_node), true);
                         bit_stream.add((byte) 1);
                     } else {
@@ -553,7 +582,7 @@ public class Folca {
                     }
                 }
             }
-            bit_stream.add((byte) 1);// add an extra virtual node
+            bit_stream.add((byte) 1); // add an extra virtual node
             StringBuilder stream = new StringBuilder(); // convert the bit stream into a string
             for (Byte b : bit_stream) {
                 stream.append(b);
@@ -576,11 +605,14 @@ public class Folca {
 
     /**
      * Convert the CFG into POPPT and return the POPPT
-     * 
+     *
+     *
+     *
      * @param cfgDict CFG dictionary
      * @return the converted POPPT
      */
-    public LinkedList<String> cfg_2_poppt(Map<String, Pair<String, String>> cfgDict) {
+    public LinkedList<String> cfg_2_poppt(
+            Map<String, Pair<String, String>> cfgDict) {
         // Build a POPPT out of the POSLP
         LinkedList<Byte> bit_stream = new LinkedList<>();
         LinkedList<String> leaves = new LinkedList<>();
@@ -601,11 +633,11 @@ public class Folca {
                 stack1.add(rhs.first);
                 // Remove the applied rule
                 cfgDict.remove(current_node);
-
             } else { // repeated nonterminals, or leave terminals
                 stack1.pop();
                 stack2.add(current_node);
-                if (inners.contains(current_node) && !inner_appeared_twice.get(inners.indexOf(current_node))) {
+                if (inners.contains(current_node) &&
+                        !inner_appeared_twice.get(inners.indexOf(current_node))) {
                     inner_appeared_twice.set(inners.indexOf(current_node), true);
                     bit_stream.add((byte) 1);
                 } else {
@@ -614,7 +646,7 @@ public class Folca {
                 }
             }
         }
-        bit_stream.add((byte) 1);// add an extra virtual node
+        bit_stream.add((byte) 1); // add an extra virtual node
         StringBuilder stream = new StringBuilder(); // convert the bit stream into a string
         for (Byte b : bit_stream) {
             stream.append(b);
@@ -627,12 +659,11 @@ public class Folca {
 
     // TODO
     public void cfg_2_tree() {
-
     }
 
     /**
      * Decompress the POPPT into text, and store to the file
-     * 
+     *
      * @param encoding POPPT encoding
      * @param file     target file
      */
@@ -686,7 +717,6 @@ public class Folca {
                         i++;
                         S.add(nonterminal);
                     }
-
                 }
                 // Seems useless
                 // if (c == 0) { // finished
@@ -702,7 +732,6 @@ public class Folca {
         } catch (Exception e) {
             System.err.println("Failed to save the output");
         }
-
     }
 
     public static void main(String[] args) {
@@ -729,7 +758,9 @@ public class Folca {
                     break;
                 case '2':
                     // text -> cfg
-                    f.folca(true);                                 
+                    f.folca(true);
+                    f.folca(true);
+                    f.folca(true);
                     break;
                 case '3':
                     // cfg -> enc
@@ -738,8 +769,12 @@ public class Folca {
                     // Get input cfg
                     Map<String, Pair<String, String>> cfg = f.parseCFG(file);
                     for (Map.Entry<String, Pair<String, String>> rule : cfg.entrySet()) {
-                        System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
-                                rule.getValue().second);
+                        System.out.println(
+                                rule.getKey() +
+                                        "->" +
+                                        rule.getValue().first +
+                                        " " +
+                                        rule.getValue().second);
                     }
                     // Get the file name
                     file = file.substring(0, file.length() - 4);
@@ -754,10 +789,13 @@ public class Folca {
                     file = input.nextLine();
                     // Check file format
                     if (!file.substring(file.length() - 4, file.length()).equals(".slp")) {
-                        System.err.println("Wrong file type, please select a file of type .slp");
+                        System.err.println(
+                                "Wrong file type, please select a file of type .slp");
                     } else {
                         // poppt -> text
-                        f.poppt_2_txt(f.parsePOPPT(file), file.substring(0, file.length() - 4));
+                        f.poppt_2_txt(
+                                f.parsePOPPT(file),
+                                file.substring(0, file.length() - 4));
                     }
                     break;
                 case '6':
@@ -766,10 +804,12 @@ public class Folca {
                     file = input.nextLine();
                     // Check file format
                     if (!file.subSequence(file.length() - 4, file.length()).equals(".cfg")) {
-                        System.err.println("Wrong file type, please select a file of type .cfg");
+                        System.err.println(
+                                "Wrong file type, please select a file of type .cfg");
                     } else {
                         // cfg -> poppt -> text
-                        f.poppt_2_txt(f.cfg_2_poppt(f.parseCFG(file)),
+                        f.poppt_2_txt(
+                                f.cfg_2_poppt(f.parseCFG(file)),
                                 file.substring(0, file.length() - 4) + "(1)");
                     }
                     break;
@@ -782,6 +822,5 @@ public class Folca {
             input.close();
             break;
         }
-
     }
 }

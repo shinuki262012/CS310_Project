@@ -5,15 +5,15 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import SLP.Pair;
 
-public class parseCFG {
+public class ParseCFG {
     String path;
     HashMap<String, Pair<String, String>> cfg;
 
-    public parseCFG(String path) {
+    public ParseCFG(String path) {
         cfg = new HashMap<String, Pair<String, String>>();
         this.path = path;
     }
-    
+
     /**
      * 
      * @return the parsed context-free grammar of SLP
