@@ -1,4 +1,5 @@
 {
     "pomodoro.pauseTime": 3,
-    "pomodoro.workTime": 27
+    "pomodoro.workTime": 27,
+    "editor.formatOnSave": true
 }
