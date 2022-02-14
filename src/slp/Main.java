@@ -4,8 +4,8 @@ import java.util.*;
 
 import javax.swing.plaf.synth.SynthSpinnerUI;
 
-import slp.text_slp.Folca;
 import slp.text_slp.Text_2_SLP;
+import slp.text_slp.Folca;
 
 import java.io.*;
 import java.nio.file.Files;
