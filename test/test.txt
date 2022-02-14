@@ -32,6 +32,8 @@ for ($i=1; $i -le 3; $i++) { Measure-Command {java Main} }
 
 Compile 
 
+javac -d bin .\src\slp\text_slp\*.java .\src\slp\Main.java
+
 
 CFG grammar test: 
 // space and newline
