@@ -1,4 +1,4 @@
-package slp;
+package slp.text_slp;
 
 /**
  * An algorithm that can produce a <i>suffix array</i> for a sequence of integer

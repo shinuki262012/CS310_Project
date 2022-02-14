@@ -1,9 +1,7 @@
-package slp;
+package slp.text_slp;
 
 import java.util.*;
-
 import slp.util.Pair;
-
 import java.io.*;
 
 public class Factorization {

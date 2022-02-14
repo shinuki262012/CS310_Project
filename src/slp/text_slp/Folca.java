@@ -1,4 +1,4 @@
-package slp;
+package slp.text_slp;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Stack;
 
+import slp.Main;
 import slp.util.CFG_2_POPPT;
 import slp.util.Pair;
 import slp.util.ParseCFG;
@@ -372,7 +373,7 @@ public class Folca {
      * Similar as update() but removes infrequent production rules
      *
      *
-     *
+     *s
      * @param X first symbol in pair
      * @param Y second symbol in pair
      * @return the nonterminal that produces the pair
