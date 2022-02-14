@@ -1,8 +1,11 @@
-package SLP;
+package slp.text_slp;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Map; // to store the grammar
+
+import slp.util.BinaryTreeNode;
+import slp.util.Pair;
 
 public class SLP_to_text {
 

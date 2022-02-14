@@ -1,8 +1,5 @@
-package SLP.LZ77_SLP;
+package slp.lz77_slp;
 
-import SLP.BinaryTreeNode;
-import SLP.Pair;
-import SLP.util.ParseCFG;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -11,6 +8,10 @@ import java.util.Scanner;
 import java.util.Stack;
 
 import javax.xml.transform.Templates;
+
+import slp.util.BinaryTreeNode;
+import slp.util.Pair;
+import slp.util.ParseCFG;
 
 public class SLP_2_LZ77 {
     // SLP as CFG

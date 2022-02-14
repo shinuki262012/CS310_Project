@@ -1,4 +1,4 @@
-package SLP;
+package slp.text_slp;
 
 import java.util.Arrays;
 

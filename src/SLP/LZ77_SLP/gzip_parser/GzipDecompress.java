@@ -1,4 +1,4 @@
-package SLP.LZ77_SLP.gzip_parser;
+package slp.lz77_slp.gzip_parser;
 
 /* 
  * Simple DEFLATE decompressor
@@ -23,7 +23,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.zip.CRC32;
 import java.util.zip.DataFormatException;
-import SLP.util.GeneralException;
+
+import slp.util.GeneralException;
 
 /**
  * Decompression application for the gzip file format.

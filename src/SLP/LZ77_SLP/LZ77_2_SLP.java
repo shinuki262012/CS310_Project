@@ -1,10 +1,11 @@
-package SLP.LZ77_SLP;
+package slp.lz77_slp;
 
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
-import SLP.LZ77_SLP.gzip_parser.*;
+
+import slp.lz77_slp.gzip_parser.*;
 
 // 
 // Parse the input .gz file to obtain a LZ77 parsing of size z of text T, then compute the AVL grammar of size O(z log n)
@@ -12,7 +13,7 @@ import SLP.LZ77_SLP.gzip_parser.*;
 
 public class LZ77_2_SLP {
 
-    SLP.LZ77_SLP.gzip_parser.GzipDecompress gzipParser = new SLP.LZ77_SLP.gzip_parser.GzipDecompress();
+    slp.lz77_slp.gzip_parser.GzipDecompress gzipParser = new slp.lz77_slp.gzip_parser.GzipDecompress();
     public static long nonTerminalCounter = 0;
 
     public void parseGzip() {

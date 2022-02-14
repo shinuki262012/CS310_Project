@@ -1,39 +1,89 @@
-package SLP;
+package slp.text_slp;
 
 import java.io.*;
-// import java.util.*;
-import java.util.Scanner;
-import java.util.Queue;
-import java.util.TreeMap;
-import java.util.function.IntPredicate;
-import java.util.List;
-import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+
+import slp.Main;
+import slp.util.CFG_2_POPPT;
+import slp.util.POPPT_2_TEXT;
+import slp.util.Pair;
+import slp.util.ParseCFG;
+import slp.util.ParsePOPPT;
+
 import java.util.HashMap;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
- * Grammar based compression implementation based on Artur Je˙z. "A really
- * Simple Approximation of Smallest Grammar".
- * In: Theoretical Computer Science 616 (Mar. 2014). doi:
- * 10.1007/978-3-319-07566-2_19.
+ * Grammar based compression implementation based on
+ * Artur Je˙z. "A Really Simple Approximation of Smallest Grammar".
+ * In: Theoretical Computer Science 616 (Mar. 2014).
+ * doi: 10.1007/978-3-319-07566-2_19.
  */
-public class Text_to_SLP {
-    public static long nonTerminalCounter = 0; // counter for nonterminals
-    public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
-            "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+public class Text_2_SLP {
+    public static long nonTerminalCounter;
+    // = 0; // counter for nonterminals
+    public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+            "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+    public static Map<String, Pair<String, String>> grammar;
+    // = new HashMap<String, Pair<String, String>>();
 
-    public static Map<String, Pair<String, String>> grammar = new HashMap<String, Pair<String, String>>();
+    public Text_2_SLP() {
+        nonTerminalCounter = 0;
+        grammar = new HashMap<String, Pair<String, String>>();
+    }
+
+    public void text_2_slp(boolean output_cfg) {
+        System.out.println("Choose the file to convert: ");
+        String file = Main.inputScanner.nextLine();
+        // Check if file exists
+        if (!new File(file).isFile()) {
+            System.out.println("Error: File does not exist.");
+            return;
+        }
+
+        // Read input file into a String
+        String input = "";
+        try {
+            input = new String(Files.readString(Paths.get(file)));
+        } catch (IOException e) {
+            System.out.println("Failed to read file.");
+        }
+
+        // Output to a file
+        try {
+            PrintWriter outputWriter = new PrintWriter(file + ".cfg");
+            compress(input);
+            if (output_cfg) {
+                for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
+                    outputWriter.println(
+                            rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
+                }
+                System.out.println("Output successfully saved to " + file + ".cfg \n");
+            } else {
+                CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
+                cfg2poppt.cfg2poppt(grammar, file);
+            }
+            outputWriter.close();
+        } catch (Exception e) {
+            System.out.println("Failed to save the output");
+        }
+    }
 
     /**
      * Text to Grammar
      */
-    public Map<String, Pair<String, String>> TtoG(String input) {
+    private Map<String, Pair<String, String>> compress(String input) {
+
         int w = input.length();
         // Compute the LZ77 factorization of the input
         Factorization fac = new Factorization();
-        ArrayList<Pair<Integer, Integer>> factorization = fac.factorization(input);
+        ArrayList<Pair<Integer, Integer>> factorization = Factorization.factorization(input);
+        // ArrayList<Pair<Integer, Integer>> factorization = fac.factorization(input);
+
         // Initialise tables start, end and pair
         int[] start = new int[w]; // stores beginning of factors, -1: not the beginning of a factor
         int[] end = new int[w]; // stores ends of factors: 1/-1 -> whether w[i] is the last letter of a factor
@@ -74,6 +124,8 @@ public class Text_to_SLP {
             if (reversedTerminalRules.get(input_array[i]) == null) {
                 // Add a grammar rule
                 String nonTerminal = long_2_nonterminal(nonTerminalCounter);
+                System.out.println("nonTerminal: " + nonTerminal);
+
                 nonTerminalCounter++;
                 if (input_array[i].equals(" "))
                     reversedTerminalRules.put("' '", nonTerminal);
@@ -94,40 +146,21 @@ public class Text_to_SLP {
             Pair<String, String> rhs = new Pair<String, String>(rule.getKey(), "");
             grammar.put(rule.getValue(), rhs);
         }
-        // System.out.println("Rules for terminals: ");
-        // for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
-        // System.out.println(rule.getKey() + "->" + rule.getValue().first +
-        // (rule.getValue().second == ""
-        // ? (", " + rule.getValue().second)
-        // : ""));
-        // }
 
         // Main loop
         while (input_array.length > 1) {
-            // Compute a pairing of w using Pairing()
-            Pairing(input_array, start, end, pair);
+            // Compute a pairing of w using pairing()
+            pairing(input_array, start, end, pair);
 
-            // Replace the pairs using PairReplacement()
-            input_array = PairReplacement(input_array, start, end, pair);
-            // System.out.println("Pairing: input: " + String.join("", input_array));
+            // Replace the pairs using pairReplacement()
+            input_array = pairReplacement(input_array, start, end, pair);
+            // System.out.println("pairing: input: " + String.join("", input_array));
         }
 
         String start_symbol = long_2_nonterminal(nonTerminalCounter - 1);
         // Change the start symbol to S00
         grammar.put("S00", grammar.get(start_symbol));
         grammar.remove(start_symbol);
-
-        // Print grammar
-        System.out.println("Final grammar: ");
-        for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
-            String L = rule.getValue().first;
-            String R = rule.getValue().second;
-            String result = rule.getKey() + "->" + L;
-            if (!R.equals("")) {
-                result += R;
-            }
-            System.out.println(result);
-        }
 
         // Check grammar by decompressing and compare
         // SLP_to_text decompresser = new SLP_to_text();
@@ -139,10 +172,10 @@ public class Text_to_SLP {
         return grammar;
     }
 
-    public void Pairing(String[] input, int[] start, int[] end, int[] pair) {
+    private void pairing(String[] input, int[] start, int[] end, int[] pair) {
         int w = input.length;
         // System.out.println(input.length);
-        // System.out.println("Pairing: input: " + String.join("", input));
+        // System.out.println("pairing: input: " + String.join("", input));
         // System.out.println("Start: " + Arrays.toString(start));
         // System.out.println("End: " + Arrays.toString(end));
         // System.out.println("Pair: " + Arrays.toString(pair));
@@ -197,7 +230,7 @@ public class Text_to_SLP {
         return;
     }
 
-    public String[] PairReplacement(String[] input, int[] start, int[] end, int[] pair) {
+    private String[] pairReplacement(String[] input, int[] start, int[] end, int[] pair) {
         // TODO space complexity increased
         String[] inputP = new String[input.length]; // the new word after replacing the pairing
 
@@ -248,10 +281,11 @@ public class Text_to_SLP {
                         iP++;
                     } else {
                         String nonTerminal = long_2_nonterminal(nonTerminalCounter);
+                        System.out.println("nonTerminal: " + nonTerminal);
                         nonTerminalCounter++;
                         Pair<String, String> rhs = new Pair<String, String>(input[i], input[i + 1]);
                         inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
-                        // System.out.println("1 input: " + String.join("", input));
+
                         // Record the grammar ruls
                         grammar.put(nonTerminal, rhs);
                         i += 2;
@@ -264,42 +298,18 @@ public class Text_to_SLP {
     }
 
     /**
-     * Calculate the order of the input nonterminal
-     * 
-     * @param nonterminal
-     * @return an integer representing the nonterminal
-     */
-    public long nonterminal_2_long(String nonterminal) {
-        String alphabet = String.valueOf(nonterminal.charAt(0));
-        int a = (int) Integer.valueOf(Arrays.asList(alphabets).indexOf(alphabet));
-        // System.out.println(a);
-        long n = (long) Integer.valueOf(nonterminal.substring(1));
-        // System.out.println(n);
-        return n * 26 + a;
-    }
-
-    /**
      * Get the nonterminal represented by the given integer
      * 
      * @param x an integer
      * @return the nontermial representing the integer
      */
-    public String long_2_nonterminal(long x) {
+    private String long_2_nonterminal(long x) {
         int n = (int) x / 26;
         return alphabets[(int) x % 26] + String.valueOf(n);
     }
 
     public static void main(String[] args) {
-        Text_to_SLP t = new Text_to_SLP();
-        String input = "zzzzzipzip";
-        // String input = "aabbabbbasdasb";
-        // String input = "aabbabbbasdaassbacdgkl"; // tests Z0 as the start symbol
-        // String input = "this is a test string";
-        // String input =
-        // "cbsdrgksjizqhrylsgstzyjqpwkvtepbpqkydwlrkxtecmajavlwiooxgzohfegkfcnthrvemtmudekiijmmmtnfejdkpyhokribbmpmyrjzzvhfqhuhrfxvxgfhuhuj";
-        // String input = "aaaaaaaaaaaa";
-
-        // t.TtoG(input);
+        String file;
         while (true) {
             // Display options
             System.out.println("1 - text to succinct grammar");
@@ -309,30 +319,82 @@ public class Text_to_SLP {
             System.out.println("5 - succinct grammar to text");
             System.out.println("6 - cfg to text");
             System.out.println("q - Exit");
-            Scanner s = new Scanner(System.in);
-            String inputs = s.nextLine().toString().trim();
+            String inputs = Main.inputScanner.nextLine().toString().trim();
             if (inputs.isEmpty()) {
                 System.out.println("No option was given\n");
                 break;
             }
+            if (inputs.charAt(0) == 'q') {
+                System.out.println("Exiting...\n");
+                break;
+            }
             switch (inputs.charAt(0)) {
-                case '1':
+                case '1': {
+                    // text -> cfg -> enc
+                    Text_2_SLP t = new Text_2_SLP();
+                    t.text_2_slp(false);
                     break;
-                case '2':
+                }
+                case '2': {
+                    Text_2_SLP t = new Text_2_SLP();
+                    t.text_2_slp(true);
                     break;
-                case '3':
+                }
+                case '3': {
+                    // cfg -> enc
+                    System.out.println("Choose the file to convert: ");
+                    file = Main.inputScanner.nextLine();
+                    // Check if file exists
+                    if (!new File(file).isFile()) {
+                        System.out.println("Error: File does not exist.");
+                        break;
+                    }
+                    // Check file format
+                    if (!file.substring(file.length() - 4, file.length()).equals(".cfg")) {
+                        System.out.println("Wrong file type, please select a file of type .cfg");
+                    } else {
+                        // Get input cfg
+                        HashMap<String, Pair<String, String>> cfg = new ParseCFG(file).getCFG();
+                        // Get the file name
+                        file = file.substring(0, file.length() - 4);
+                        // Encode cfg
+                        CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
+                        cfg2poppt.cfg2poppt(cfg, file);
+                        break;
+                    }
+                }
+                case '4': {
+                    // cfg -> tree
                     break;
-                case '4':
+                }
+                case '5': {
+                    // Get input file
+                    System.out.println("Choose the file to convert: ");
+                    file = slp.Main.inputScanner.nextLine();
+                    // Check if file exists
+                    if (!new File(file).isFile()) {
+                        System.out.println("Error: File does not exist.");
+                        break;
+                    }
+                    // Check file format
+                    if (!file.substring(file.length() - 4, file.length()).equals(".slp")) {
+                        System.out.println("Wrong file type, please select a file of type .slp");
+                    } else {
+                        // poppt -> text
+                        POPPT_2_TEXT p = new POPPT_2_TEXT();
+                        p.poppt_2_text(new ParsePOPPT().parsePOPPT(file), file.substring(0, file.length() - 4));
+                    }
                     break;
-                case '5':
+                }
+                case '6': {
+
                     break;
-                case '6':
-                    break;
-                case 'q':
+                }
+                default:
+                    System.out.println("Please enter a valid option. \n");
                     break;
             }
         }
-
     }
 
 }

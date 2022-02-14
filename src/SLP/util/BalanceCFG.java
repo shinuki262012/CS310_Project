@@ -1,9 +1,8 @@
-package SLP.util;
+package slp.util;
 
 import java.util.HashMap;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import SLP.Pair;
 
 public class BalanceCFG {
     HashMap<String, Pair<String, String>> cfg;

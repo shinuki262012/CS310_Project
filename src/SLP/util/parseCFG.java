@@ -1,17 +1,16 @@
-package SLP.util;
+package slp.util;
 
 import java.util.HashMap;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import SLP.Pair;
 
 public class ParseCFG {
     String path;
     HashMap<String, Pair<String, String>> cfg;
 
     public ParseCFG(String path) {
-        cfg = new HashMap<String, Pair<String, String>>();
         this.path = path;
+        cfg = new HashMap<String, Pair<String, String>>();
     }
 
     /**
@@ -25,46 +24,29 @@ public class ParseCFG {
             while ((line = br.readLine()) != null) {
                 int counter = 0;
                 String lhs = "";
-                Pair<String, String> rhs = new Pair<String, String>();
-                rhs.first = "";
-                rhs.second = "";
+                Pair<String, String> rhs = new Pair<String, String>("", "");
                 // Parse LHS
                 while (counter < line.length()) {
                     if (line.charAt(counter) != '-') {
                         lhs += line.charAt(counter);
                         counter++;
                     } else {
-                        counter += 2; // consume '->'
+                        counter += 2; // consume "->"
                         break;
                     }
                 }
+                System.out.println("lhs is " + lhs);
                 // Parse RHS
-                if (counter == line.length()) { // rhs.first is newline
+                if (counter == line.length()) { // A -> newline
                     rhs.first = "\n";
                     line = br.readLine(); // read the next line
-                    int c = 1; // consume the space
-                    // Parse rhs.second
-                    if (c == line.length()) { // rhs.second is newline
-                        rhs.second = "\n";
-                        br.readLine();
-                    } else {
-                        while (c < line.length()) {
-                            rhs.second += line.charAt(c);
-                            c++;
-                        }
-                    }
-                } else if (line.charAt(counter) == ' ') { // rhs.first is space
+                } else if (line.charAt(counter) == '\t') { // A -> tab
+                    rhs.first = "\t";
+                    line = br.readLine();
+                } else if (line.charAt(counter) == ' ') { // A -> space
+                    rhs.first = " ";
                     counter++; // consume the space
-                    // Parse rhs.second
-                    if (counter == line.length()) { // rhs.second is newline
-                        rhs.second = "\n";
-                        br.readLine();
-                    } else {
-                        while (counter < line.length()) {
-                            rhs.second += line.charAt(counter);
-                            counter++;
-                        }
-                    }
+                    line = br.readLine();
                 } else { // rhs.first is terminal/nonterminal
                     while (counter < line.length()) {
                         if (line.charAt(counter) != ' ') {
@@ -76,14 +58,9 @@ public class ParseCFG {
                         }
                     }
                     // Parse rhs.second
-                    if (counter == line.length()) { // rhs.second is newline
-                        rhs.second = "\n";
-                        br.readLine();
-                    } else {
-                        while (counter < line.length()) {
-                            rhs.second += line.charAt(counter);
-                            counter++;
-                        }
+                    while (counter < line.length()) {
+                        rhs.second += line.charAt(counter);
+                        counter++;
                     }
                 }
                 // Add production rule

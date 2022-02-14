@@ -1,4 +1,4 @@
-package SLP;
+package slp.util;
 
 public class BinaryTreeNode<E extends Comparable<E>> {
 

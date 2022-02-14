@@ -1,4 +1,4 @@
-package SLP;
+package slp.util;
 
 import java.io.Serializable;
 

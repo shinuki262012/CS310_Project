@@ -1,6 +1,9 @@
-package SLP;
+package slp;
 
 import java.util.*;
+
+import slp.util.Pair;
+
 import java.io.*;
 
 public class Factorization {
@@ -24,7 +27,6 @@ public class Factorization {
 
         // Trim the suffix array
         int[] suffix_array = Arrays.copyOfRange(suffixArray, 0, input.length());
-        System.out.println("done");
         // Print the suffix array
         // System.out.print("Suffix array: [" + Integer.toString(suffix_array[0]));
         // for (int i = 1; i < suffix_array.length; i++) {

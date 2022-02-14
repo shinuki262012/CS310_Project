@@ -1,4 +1,4 @@
-package SLP.LZ77_SLP.gzip_parser;
+package slp.lz77_slp.gzip_parser;
 /* 
  * Simple DEFLATE decompressor
  * Copyright (c) Project Nayuki
