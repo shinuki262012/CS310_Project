@@ -9,6 +9,10 @@ public class POPPT_2_TEXT {
     public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G",
             "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
+    public POPPT_2_TEXT() {
+
+    }
+
     /**
      * Get the nonterminal represented by the given integer
      *
@@ -51,6 +55,7 @@ public class POPPT_2_TEXT {
                             String current_node = stack1.pop();
                             if (Dict.containsKey(current_node)) { // apply the production rule for a nonterminal
                                 Pair<String, String> rhs = Dict.get(current_node);
+                                System.out.println("first:|" + rhs.first + "|second|" + rhs.second + "|");
                                 stack1.add(rhs.first);
                                 stack1.add(rhs.second);
                             } else { // append to the text for a terminal
@@ -59,7 +64,7 @@ public class POPPT_2_TEXT {
                             }
                         }
                     }
-                    System.out.println("original text so far: " + original_text);
+                    System.out.println("original text so far: " + original_text + "|");
                 } else { // internal node
                     c--;
                     if (c > 0) {

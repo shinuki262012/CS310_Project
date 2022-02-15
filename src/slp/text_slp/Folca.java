@@ -11,8 +11,10 @@ import java.util.Stack;
 
 import slp.Main;
 import slp.util.CFG_2_POPPT;
+import slp.util.POPPT_2_TEXT;
 import slp.util.Pair;
 import slp.util.ParseCFG;
+import slp.util.ParsePOPPT;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -373,7 +375,8 @@ public class Folca {
      * Similar as update() but removes infrequent production rules
      *
      *
-     *s
+     * s
+     * 
      * @param X first symbol in pair
      * @param Y second symbol in pair
      * @return the nonterminal that produces the pair
@@ -618,9 +621,13 @@ public class Folca {
                         System.out.println("Wrong file type, please select a file of type .slp");
                     } else {
                         // poppt -> text
-                        f.poppt_2_txt(f.parsePOPPT(file), file.substring(0, file.length() - 4));
+                        // f.poppt_2_txt(f.parsePOPPT(file), file.substring(0, file.length() - 4));
+                        POPPT_2_TEXT p = new POPPT_2_TEXT();
+                        p.poppt_2_text(new ParsePOPPT().parsePOPPT(file), file.substring(0,
+                                file.length() - 4));
                     }
                     break;
+
                 }
                 case '6': {
 

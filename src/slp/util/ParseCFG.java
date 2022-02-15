@@ -31,22 +31,37 @@ public class ParseCFG {
                         lhs += line.charAt(counter);
                         counter++;
                     } else {
-                        counter += 2; // consume "->"
+                        counter += 2; // consume '->'
                         break;
                     }
                 }
-                System.out.println("lhs is " + lhs);
                 // Parse RHS
-                if (counter == line.length()) { // A -> newline
+                if (counter == line.length()) { // rhs.first is newline
                     rhs.first = "\n";
                     line = br.readLine(); // read the next line
-                } else if (line.charAt(counter) == '\t') { // A -> tab
-                    rhs.first = "\t";
-                    line = br.readLine();
-                } else if (line.charAt(counter) == ' ') { // A -> space
-                    rhs.first = " ";
+                    int c = 1; // consume the space
+                    // Parse rhs.second
+                    if (c == line.length()) { // rhs.second is newline
+                        rhs.second = "\n";
+                        br.readLine();
+                    } else {
+                        while (c < line.length()) {
+                            rhs.second += line.charAt(c);
+                            c++;
+                        }
+                    }
+                } else if (line.charAt(counter) == ' ') { // rhs.first is space
                     counter++; // consume the space
-                    line = br.readLine();
+                    // Parse rhs.second
+                    if (counter == line.length()) { // rhs.second is newline
+                        rhs.second = "\n";
+                        br.readLine();
+                    } else {
+                        while (counter < line.length()) {
+                            rhs.second += line.charAt(counter);
+                            counter++;
+                        }
+                    }
                 } else { // rhs.first is terminal/nonterminal
                     while (counter < line.length()) {
                         if (line.charAt(counter) != ' ') {
@@ -58,9 +73,14 @@ public class ParseCFG {
                         }
                     }
                     // Parse rhs.second
-                    while (counter < line.length()) {
-                        rhs.second += line.charAt(counter);
-                        counter++;
+                    if (counter == line.length()) { // rhs.second is newline
+                        rhs.second = "\n";
+                        br.readLine();
+                    } else {
+                        while (counter < line.length()) {
+                            rhs.second += line.charAt(counter);
+                            counter++;
+                        }
                     }
                 }
                 // Add production rule

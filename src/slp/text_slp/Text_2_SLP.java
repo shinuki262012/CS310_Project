@@ -1,35 +1,31 @@
 package slp.text_slp;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-
 import slp.Main;
-import slp.util.CFG_2_POPPT;
-import slp.util.POPPT_2_TEXT;
-import slp.util.Pair;
-import slp.util.ParseCFG;
-import slp.util.ParsePOPPT;
+import slp.util.*;
 
-import java.util.HashMap;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Grammar based compression implementation based on
  * Artur Je˙z. "A Really Simple Approximation of Smallest Grammar".
  * In: Theoretical Computer Science 616 (Mar. 2014).
  * doi: 10.1007/978-3-319-07566-2_19.
+ * 
+ * @author Tian
  */
 public class Text_2_SLP {
     public static long nonTerminalCounter;
-    // = 0; // counter for nonterminals
+    public static Map<String, Pair<String, String>> grammar;
     public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
             "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
-    public static Map<String, Pair<String, String>> grammar;
-    // = new HashMap<String, Pair<String, String>>();
 
     public Text_2_SLP() {
         nonTerminalCounter = 0;
@@ -44,7 +40,6 @@ public class Text_2_SLP {
             System.out.println("Error: File does not exist.");
             return;
         }
-
         // Read input file into a String
         String input = "";
         try {
@@ -53,17 +48,20 @@ public class Text_2_SLP {
             System.out.println("Failed to read file.");
         }
 
-        // Output to a file
         try {
             PrintWriter outputWriter = new PrintWriter(file + ".cfg");
+            // Compress the input
             compress(input);
+            // Save as CFG
             if (output_cfg) {
                 for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
                     outputWriter.println(
                             rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
                 }
                 System.out.println("Output successfully saved to " + file + ".cfg \n");
-            } else {
+            }
+            // Save as succinct representation
+            else {
                 CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
                 cfg2poppt.cfg2poppt(grammar, file);
             }
@@ -116,36 +114,6 @@ public class Text_2_SLP {
         }
 
         String[] input_array = input.split("");
-
-        // Add rules for all terminals
-        Map<String, String> reversedTerminalRules = new HashMap<String, String>(); // rules of form X -> a
-        for (int i = 0; i < input_array.length; i++) {
-            // Check if the character has appeared in the grammar
-            if (reversedTerminalRules.get(input_array[i]) == null) {
-                // Add a grammar rule
-                String nonTerminal = long_2_nonterminal(nonTerminalCounter);
-                System.out.println("nonTerminal: " + nonTerminal);
-
-                nonTerminalCounter++;
-                if (input_array[i].equals(" "))
-                    reversedTerminalRules.put("' '", nonTerminal);
-                else if (input_array[i].equals("\n"))
-                    reversedTerminalRules.put("\\n", nonTerminal);
-                else
-                    reversedTerminalRules.put(input_array[i], nonTerminal);
-                input_array[i] = nonTerminal;
-            } else {
-                // replace the character with the nonterminal
-                input_array[i] = reversedTerminalRules.get(input_array[i]);
-            }
-        }
-
-        // System.out.println(reversedTerminalRules.toString());
-        // Reverse the terminal rules
-        for (Map.Entry<String, String> rule : reversedTerminalRules.entrySet()) {
-            Pair<String, String> rhs = new Pair<String, String>(rule.getKey(), "");
-            grammar.put(rule.getValue(), rhs);
-        }
 
         // Main loop
         while (input_array.length > 1) {

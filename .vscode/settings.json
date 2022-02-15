@@ -1,5 +1,10 @@
 {
     "pomodoro.pauseTime": 3,
     "pomodoro.workTime": 27,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "java.project.sourcePaths": [
+        "test",
+        "src"
+    ],
+    "java.project.outputPath": "bin"
 }
