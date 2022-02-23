@@ -33,6 +33,10 @@ for ($i=1; $i -le 3; $i++) { Measure-Command {java Main} }
 Compile 
 
 javac -d bin .\src\slp\util\*.java .\src\slp\text_slp\*.java .\src\slp\Main.java
+
+javac -d bin .\src\slp\util\*.java .\src\slp\text_slp\*.java .\src\slp\lz77_slp\gzip_parser\*.java .\src\slp\lz77_slp\*.java 
+.\src\slp\Main.java
+
 PS C:\Users\Tian\Documents\GitHub\CS310_Project\bin> java slp.Main
 
 CFG grammar test: 

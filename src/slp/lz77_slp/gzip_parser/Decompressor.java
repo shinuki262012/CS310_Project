@@ -225,7 +225,6 @@ public final class Decompressor {
 				LZ77Parsing.add(run);
 			}
 		}
-		System.out.println(LZ77Parsing.toString());
 	}
 
 	/*-- Symbol decoding methods --*/

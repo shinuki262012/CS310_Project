@@ -51,6 +51,8 @@ public class ParseCFG {
                         }
                     }
                 } else if (line.charAt(counter) == ' ') { // rhs.first is space
+                    rhs.first = " ";
+                    counter++; // consume the space
                     counter++; // consume the space
                     // Parse rhs.second
                     if (counter == line.length()) { // rhs.second is newline
@@ -96,7 +98,7 @@ public class ParseCFG {
 
     public void flush() {
         for (HashMap.Entry<String, Pair<String, String>> rule : this.cfg.entrySet()) {
-            System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
+            System.out.println(rule.getKey() + "->" + rule.getValue().first + "," +
                     rule.getValue().second);
         }
     }

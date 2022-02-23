@@ -1,5 +1,6 @@
 package slp.lz77_slp;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -7,28 +8,23 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
 
-import javax.xml.transform.Templates;
-
 import slp.util.BinaryTreeNode;
 import slp.util.Pair;
 import slp.util.ParseCFG;
 
 public class SLP_2_LZ77 {
     // SLP as CFG
-    public static Map<String, Pair<String, String>> cfg = new HashMap<String, Pair<String, String>>();
+    public Map<String, Pair<String, String>> cfg = new HashMap<String, Pair<String, String>>();
     // LZ77 factorization
-    public static ArrayList<Pair<Integer, Integer>> lz77 = new ArrayList<Pair<Integer, Integer>>();
+    public ArrayList<Pair<Integer, Integer>> lz77 = new ArrayList<Pair<Integer, Integer>>();
     // store the length of the substring represented by the nonterminal
-    public static Map<String, Integer> subLengths = new HashMap<String, Integer>();
+    public Map<String, Integer> subLengths = new HashMap<String, Integer>();
     // store the index of first occurence of nonterminals
-    public static Map<String, Integer> indexs = new HashMap<String, Integer>();
+    public Map<String, Integer> indexs = new HashMap<String, Integer>();
     // store the nonterminals that are back references
-    public static ArrayList<String> backReferences = new ArrayList<>();
+    public ArrayList<String> backReferences = new ArrayList<>();
 
-    public void SLP2LZ77() {
-        Scanner inputScanner = new Scanner(System.in);
-        System.out.println("Choose the SLP file to convert: ");
-        String file = inputScanner.nextLine();
+    public void SLP2LZ77(String file) {
         try {
             // Parse input CFG
             cfg = new ParseCFG(file).getCFG();
@@ -126,14 +122,24 @@ public class SLP_2_LZ77 {
                     lz77.add(new Pair<Integer, Integer>((int) indexs.get(nonterminal), subLengths.get(nonterminal)));
                 }
             }
-            for (int i = 0; i < lz77.size(); i++) {
-                System.out.println(lz77.get(i).first + ", " + lz77.get(i).second);
+
+            /* Output the LZ77 factorization */
+            try {
+                PrintWriter printWriter = new PrintWriter(file.substring(0, file.length() - 4) + ".lz77");
+                for (int i = 0; i < lz77.size(); i++) {
+                    printWriter.println(lz77.get(i).first + ", " + lz77.get(i).second);
+                    System.out.println(lz77.get(i).first + ", " + lz77.get(i).second);
+                }
+                printWriter.close();
+            } catch (Exception e) {
+                System.out.println("Failed to save the output");
+                System.exit(1);
             }
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("Failed to read the file input");
         }
 
-        inputScanner.close();
     }
 
     private void getSubLengths() {
@@ -170,7 +176,26 @@ public class SLP_2_LZ77 {
         }
     }
 
-    public static void main(String[] args) {
-        new SLP_2_LZ77().SLP2LZ77();
+    public String decompressLZ77() {
+        for (Pair<Integer, Integer> p : lz77) {
+            System.out.println("==========" + p.first + "," + p.second);
+        }
+
+        StringBuffer sb = new StringBuffer();
+        for (Pair<Integer, Integer> p : this.lz77) {
+            if (p.second == 0) {
+                System.out.println("next char is " + (char) (int) p.first);
+                sb.append((char) (int) p.first);
+            } else {
+                for (int i = 0; i < p.second; i++) {
+                    char nextChar = sb.charAt(p.first + i);
+                    System.out.println("next char is " + nextChar);
+                    sb.append(nextChar);
+                }
+            }
+        }
+        System.out.println("Decompressed String: " + new String(sb));
+        return new String(sb);
     }
+
 }

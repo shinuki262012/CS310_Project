@@ -179,7 +179,6 @@ public final class GzipDecompress {
 			try {
 				// Parse the compressed data into LZ77 parsing/factorization
 				LZ77Parsing = Decompressor.decompress(new ByteBitInputStream(in));
-				System.out.println("LZ77parsing \n" + LZ77Parsing.toString());
 			} catch (DataFormatException e) {
 				throw new GeneralException("Invalid or corrupt compressed data: " + e.getMessage());
 			}

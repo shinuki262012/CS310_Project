@@ -55,12 +55,11 @@ public class Text_2_SLP {
             // Save as CFG
             if (output_cfg) {
                 for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
-                    outputWriter.println(
-                            rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
+                    outputWriter.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
                 }
                 System.out.println("Output successfully saved to " + file + ".cfg \n");
             }
-            // Save as succinct representation
+            // Save as a succinct representation
             else {
                 CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
                 cfg2poppt.cfg2poppt(grammar, file);
@@ -74,8 +73,7 @@ public class Text_2_SLP {
     /**
      * Text to Grammar
      */
-    private Map<String, Pair<String, String>> compress(String input) {
-
+    public Map<String, Pair<String, String>> compress(String input) {
         int w = input.length();
         // Compute the LZ77 factorization of the input
         Factorization fac = new Factorization();
@@ -140,6 +138,59 @@ public class Text_2_SLP {
         return grammar;
     }
 
+    public Map<String, Pair<String, String>> compress(String input, ArrayList<Pair<Integer, Integer>> factorization) {
+        int w = input.length();
+        // Initialise tables start, end and pair
+        int[] start = new int[w]; // stores beginning of factors, -1: not the beginning of a factor
+        int[] end = new int[w]; // stores ends of factors: 1/-1 -> whether w[i] is the last letter of a factor
+        int[] pair = new int[w]; // stores pairing, 0: unpaired; 1: first in a pair; 2: second in a pair
+        Arrays.fill(start, -1);
+        Arrays.fill(end, -1);
+        Arrays.fill(pair, 0);
+        // System.out.println(" ");
+        // System.out.println("Start: " + Arrays.toString(start));
+        // System.out.println("End: " + Arrays.toString(end));
+        // System.out.println("Pair: " + Arrays.toString(pair));
+        // System.out.println("------------------------------");
+
+        // Populate tables with the factorization
+        int curIdx = 0;
+        for (int i = 0; i < factorization.size(); i++) {
+            int first = factorization.get(i).first;
+            int second = factorization.get(i).second;
+
+            if (second == 0) { // a free letter
+                start[curIdx] = curIdx;
+                end[curIdx] = 1;
+                curIdx += 1;
+            } else {
+                start[curIdx] = first;
+                curIdx += second;
+                end[curIdx - 1] = 1;
+            }
+        }
+
+        String[] input_array = input.split("");
+
+        // Main loop
+        while (input_array.length > 1) {
+            // Compute a pairing of w using pairing()
+            pairing(input_array, start, end, pair);
+
+            // Replace the pairs using pairReplacement()
+            input_array = pairReplacement(input_array, start, end, pair);
+            // System.out.println("pairing: input: " + String.join("", input_array));
+        }
+
+        // Change the start symbol to S00
+        String start_symbol = long_2_nonterminal(nonTerminalCounter - 1);
+        grammar.put("S00", grammar.get(start_symbol));
+        grammar.remove(start_symbol);
+
+        return grammar;
+
+    }
+
     private void pairing(String[] input, int[] start, int[] end, int[] pair) {
         int w = input.length;
         // System.out.println(input.length);
@@ -183,7 +234,7 @@ public class Text_2_SLP {
                 }
             }
             if (i < w) {
-                if (start[i] == -1) { // w[i] is a free letter
+                if (start[i] == -1) { // w[i] is a free lettero
                     if (pair[i - 1] == 0) { // if previous letter is not paired
                         pair[i - 1] = 1; // pair them
                         pair[i] = 2;
@@ -199,7 +250,6 @@ public class Text_2_SLP {
     }
 
     private String[] pairReplacement(String[] input, int[] start, int[] end, int[] pair) {
-        // TODO space complexity increased
         String[] inputP = new String[input.length]; // the new word after replacing the pairing
 
         // System.out.println("Replace: ----------------------------------");
@@ -333,7 +383,22 @@ public class Text_2_SLP {
                 }
                 case '4': {
                     // cfg -> tree
-                    break;
+                    System.out.println("Choose the file to convert: ");
+                    file = Main.inputScanner.nextLine();
+                    // Check if file exists
+                    if (!new File(file).isFile()) {
+                        System.out.println("Error: File does not exist.");
+                        break;
+                    }
+                    // Check file format
+                    if (!file.substring(file.length() - 4, file.length()).equals(".cfg")) {
+                        System.out.println("Wrong file type, please select a file of type .cfg");
+                    } else {
+                        // To tree
+                        SLP_2_Text s = new SLP_2_Text();
+                        s.toTree(new ParseCFG(file).getCFG());
+                        break;
+                    }
                 }
                 case '5': {
                     // Get input file
@@ -355,7 +420,22 @@ public class Text_2_SLP {
                     break;
                 }
                 case '6': {
-
+                    // Get input file
+                    System.out.println("Choose the file to convert: ");
+                    file = slp.Main.inputScanner.nextLine();
+                    // Check if file exists
+                    if (!new File(file).isFile()) {
+                        System.out.println("Error: File does not exist.");
+                        break;
+                    }
+                    // Check file format
+                    if (!file.substring(file.length() - 4, file.length()).equals(".cfg")) {
+                        System.out.println("Wrong file type, please select a file of type .cfg");
+                    } else {
+                        // cfg -> text
+                        SLP_2_Text s = new SLP_2_Text();
+                        s.toText(new ParseCFG(file).getCFG());
+                    }
                     break;
                 }
                 default:

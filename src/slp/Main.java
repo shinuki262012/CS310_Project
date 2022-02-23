@@ -4,8 +4,9 @@ import java.util.*;
 
 import javax.swing.plaf.synth.SynthSpinnerUI;
 
-import slp.text_slp.Text_2_SLP;
-import slp.text_slp.Folca;
+import slp.text_slp.*;
+import slp.lz77_slp.*;
+import slp.util.*;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -16,13 +17,15 @@ public class Main {
     public static Scanner inputScanner;
     static Text_2_SLP text2slp;
     static Folca folca;
+    static LZ77_2_SLP lz772slp;
+    static SLP_2_LZ77 slp2lz77;
 
     /**
      * Display the main menu
      * 
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws GeneralException {
         inputScanner = new Scanner(System.in);
         menu();
         inputScanner.close();
@@ -31,7 +34,7 @@ public class Main {
     /**
      * Main menu
      */
-    public static void menu() {
+    public static void menu() throws GeneralException {
         String inputs;
         while (true) {
             System.out.println("\nMenu: ");
@@ -59,9 +62,11 @@ public class Main {
                     break;
                 case '2':
                     System.out.println("Option 2 selected.\n");
+                    lz77_2_slp_menu();
                     break;
                 case '3':
                     System.out.println("Option 3 selected.\n");
+                    slp_2_lz77_menu();
                     break;
                 default:
                     System.out.println("Please enter a valid option.\n");
@@ -94,7 +99,34 @@ public class Main {
     }
 
     public static void lz77_2_slp_menu() {
+        System.out.println("Choose the file to convert: ");
+        String inputs = inputScanner.nextLine().toString().trim();
+        if (inputs.isEmpty()) {
+            System.out.println("No file was given.");
+        } else {
+            lz772slp = new LZ77_2_SLP();
+            lz772slp.parseGzip(inputs);
+        }
+    }
 
+    public static void slp_2_lz77_menu() throws GeneralException {
+        System.out.println("Choose the file to convert: ");
+        String file = inputScanner.nextLine().toString().trim();
+        try {
+            if (file.isEmpty()) {
+                throw new GeneralException("No file was given");
+            }
+            if (!new File(file).isFile()) {
+                throw new GeneralException("Error: input file does not exist: " + file);
+            }
+            if (new File(file).isDirectory()) {
+                throw new GeneralException("Error: input file is a directory: " + file);
+            }
+            new SLP_2_LZ77().SLP2LZ77(file);
+        } catch (GeneralException e) {
+            System.err.println(e.getMessage());
+            // System.exit(1);
+        }
     }
 
 }

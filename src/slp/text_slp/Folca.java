@@ -605,7 +605,22 @@ public class Folca {
                 }
                 case '4': {
                     // cfg -> tree
-                    break;
+                    System.out.println("Choose the file to convert: ");
+                    file = Main.inputScanner.nextLine();
+                    // Check if file exists
+                    if (!new File(file).isFile()) {
+                        System.out.println("Error: File does not exist.");
+                        break;
+                    }
+                    // Check file format
+                    if (!file.substring(file.length() - 4, file.length()).equals(".cfg")) {
+                        System.out.println("Wrong file type, please select a file of type .cfg");
+                    } else {
+                        // To tree
+                        SLP_2_Text s = new SLP_2_Text();
+                        s.toTree(new ParseCFG(file).getCFG());
+                        break;
+                    }
                 }
                 case '5': {
                     // Get input file

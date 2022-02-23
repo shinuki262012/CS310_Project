@@ -58,11 +58,11 @@ public class CFG_2_POPPT {
             cfg2poppt(cfg);
 
             // Output encoding to the file
-            FileOutputStream fOutStream = new FileOutputStream(file + ".slp");
-            ObjectOutputStream oOutStream = new ObjectOutputStream(fOutStream);
-            oOutStream.writeObject(poppt);
+            FileOutputStream fos = new FileOutputStream(file + ".slp");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(poppt);
             System.out.println("Output successfully saved to " + file + ".slp \n");
-            oOutStream.close();
+            oos.close();
         } catch (Exception e) {
             System.out.println("Failed to save the output");
         }

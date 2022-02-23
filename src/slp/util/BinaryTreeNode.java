@@ -79,22 +79,23 @@ public class BinaryTreeNode<E extends Comparable<E>> {
 
     public void toString(String prefix, boolean isLeft) {
         if (this.left != null) {
+            System.out.println(prefix + (isLeft ? "|-" : "`-") + value);
+            left.toString(prefix + (isLeft ? "| " : "  "), true);
             if (this.right != null) {
-                System.out.println(prefix + (isLeft ? "|--" : "`--") + value);
-                left.toString(prefix + (isLeft ? "| " : "  "), true);
                 right.toString(prefix + (isLeft ? "| " : "  "), false);
-            } else {
-                System.out.println(prefix + (isLeft ? "|--" : "`--") + value);
-                left.toString(prefix + (isLeft ? "| " : "  "), true);
             }
         } else {
             // TODO: add new line, space and tab
             if (String.valueOf(value).equals("\n"))
-                System.out.println(prefix + (isLeft ? "|____" : "`--") + "\\n");
+                System.out.println(prefix + (isLeft ? "|--" : "`--") + "\\n");
             else if (String.valueOf(value).equals(" "))
-                System.out.println(prefix + (isLeft ? "|____" : "`--") + "' '");
-            else
-                System.out.println(prefix + (isLeft ? "|____" : "`--") + value);
+                System.out.println(prefix + (isLeft ? "|--" : "`--") + "' '");
+            else if (String.valueOf(value).equals("\t")) {
+                System.out.println(prefix + (isLeft ? "|--" : "`--") + "\\t");
+            } else if (String.valueOf(value).equals("  ")) {
+                System.out.println(prefix + (isLeft ? "|--" : "`--") + "\\t");
+            } else
+                System.out.println(prefix + (isLeft ? "|--" : "`--") + value);
         }
     }
 
