@@ -8,6 +8,11 @@ import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.io.ObjectInputStream;
 
+/**
+ * Parse the input file into POPPT.
+ * 
+ * @author Tianlong Zhong
+ */
 public class ParsePOPPT {
     public LinkedList<String> encoding;
 

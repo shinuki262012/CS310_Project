@@ -5,6 +5,11 @@ import java.util.HashMap;
 import java.util.Stack;
 import java.io.PrintWriter;
 
+/**
+ * Decompress the POPPT into String.
+ * 
+ * @author Tianlong Zhong
+ */
 public class POPPT_2_TEXT {
     public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G",
             "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
@@ -24,6 +29,12 @@ public class POPPT_2_TEXT {
         return alphabets[(int) x % 26] + String.valueOf(n);
     }
 
+    /**
+     * Decompress the POPPT into the file provided.
+     * 
+     * @param encoding POPPT encoding.
+     * @param file     file to be saved into.
+     */
     public void poppt_2_text(LinkedList<String> encoding, String file) {
         System.out.println("encoding: " + encoding.toString());
         // Restore the bit stream

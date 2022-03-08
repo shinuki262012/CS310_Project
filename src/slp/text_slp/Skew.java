@@ -3,18 +3,18 @@ package slp.text_slp;
 import java.util.Arrays;
 
 /**
- * <p>
- * Straightforward reimplementation of the recursive algorithm given in: <tt>
+ * Straightforward reimplementation of the recursive algorithm given in:
  * J. Kärkkäinen and P. Sanders. Simple linear work suffix array construction.
- * In Proc. 13th International Conference on Automata, Languages and Programming, 
- * Springer, 2003
- * </tt>
- * <p>
+ * In Proc. 13th International Conference on Automata, Languages and
+ * Programming, Springer, 2003
+ * 
  * This implementation is basically a translation of the C++ version given by
  * Juha Kärkkäinen and Peter Sanders.
- * <p>
+ *
  * The implementation of this algorithm makes some assumptions about the input.
  * See {@link #buildSuffixArray(int[], int, int)} for details.
+ * 
+ * https://github.com/carrotsearch/jsuffixarrays/blob/master/src/main/java/org/jsuffixarrays/Skew.java
  */
 public final class Skew implements ISuffixArrayBuilder {
     /**
@@ -256,7 +256,4 @@ public final class Skew implements ISuffixArrayBuilder {
         return SA;
     }
 
-    public static void main(String[] args) {
-
-    }
 }

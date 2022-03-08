@@ -16,8 +16,11 @@ import java.util.zip.DataFormatException;
 import javax.swing.plaf.synth.SynthSpinnerUI;
 import java.nio.ByteOrder;
 
+//TODO
 /**
  * Decompresses raw DEFLATE data (without zlib or gzip container) into bytes.
+ * Modified
+ * 
  */
 public final class Decompressor {
 

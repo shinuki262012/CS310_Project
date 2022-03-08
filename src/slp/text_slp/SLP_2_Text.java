@@ -1,13 +1,18 @@
 package slp.text_slp;
 
+import slp.util.BinaryTreeNode;
+import slp.util.Pair;
+
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Stack;
 
-import slp.util.BinaryTreeNode;
-import slp.util.Pair;
-
+/**
+ * Decompress SLP to string/parse tree
+ * 
+ * @author Tianlong Zhong
+ */
 public class SLP_2_Text {
 
     public String GtoT(Map<String, Pair<String, String>> grammar) {
@@ -65,6 +70,11 @@ public class SLP_2_Text {
         return String.join("", newText);
     }
 
+    /**
+     * Print parse tree of the input SLP
+     * 
+     * @param grammar SLP
+     */
     public void toTree(Map<String, Pair<String, String>> grammar) {
         Stack<BinaryTreeNode<String>> treeStack = new Stack<>();
         String currentValue;
@@ -88,6 +98,12 @@ public class SLP_2_Text {
         root.toString("", false);
     }
 
+    /**
+     * Decompress the input SLP to text
+     * 
+     * @param grammar SLP
+     * @return string represented by the SLP
+     */
     public String toText(Map<String, Pair<String, String>> grammar) {
         Stack<String> s = new Stack<String>();
         String originalText = "";
@@ -102,10 +118,16 @@ public class SLP_2_Text {
                 originalText += currentNode;
             }
         }
-        System.out.println(originalText);
+        // System.out.println(originalText);
         return originalText;
     }
 
+    /**
+     * Decompress the input SLP and save the output to the given file
+     * 
+     * @param grammar SLP
+     * @param file    file to save the output
+     */
     public void toText(Map<String, Pair<String, String>> grammar, String file) {
         Stack<String> s = new Stack<String>();
         String currentNode;

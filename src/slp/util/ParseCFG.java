@@ -4,6 +4,11 @@ import java.util.HashMap;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
+/**
+ * Parse the input file into CFG.
+ * 
+ * @author Tianlong Zhong
+ */
 public class ParseCFG {
     String path;
     HashMap<String, Pair<String, String>> cfg;
@@ -96,6 +101,9 @@ public class ParseCFG {
         return cfg;
     }
 
+    /**
+     * Print the result.
+     */
     public void flush() {
         for (HashMap.Entry<String, Pair<String, String>> rule : this.cfg.entrySet()) {
             System.out.println(rule.getKey() + "->" + rule.getValue().first + "," +

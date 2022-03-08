@@ -1,5 +1,10 @@
 package slp.util;
 
+/**
+ * Represent a context free grammar in CNF.
+ * 
+ * @author Tianlong Zhong
+ */
 public class BinaryTree<E extends Comparable<E>> {
     BinaryTreeNode<E> root;
 
@@ -58,11 +63,4 @@ public class BinaryTree<E extends Comparable<E>> {
         }
     }
 
-    public void traversal() {
-        System.out.print("Inorder traversal: ");
-
-        inOrder(root);
-
-        System.out.println();
-    }
 }

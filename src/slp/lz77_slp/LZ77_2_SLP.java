@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
 import java.nio.charset.StandardCharsets;
+import java.sql.PseudoColumnUsage;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -16,12 +17,15 @@ import slp.lz77_slp.gzip_parser.*;
 import slp.text_slp.SLP_2_Text;
 import slp.text_slp.Text_2_SLP;
 
-// 
-// Parse the input .gz file to obtain a LZ77 parsing of size z of text T, then compute the AVL grammar of size O(z log n)
-//
-
+/**
+ * 
+ * Parse the input .gz file to obtain a LZ77 parsing of size z of text T.
+ * Then compute the SLP of the LZ77.
+ * 
+ * @author Tianlong Zhong
+ */
 public class LZ77_2_SLP {
-    String text;
+    String text; // text encoded by the .gz file.
     slp.lz77_slp.gzip_parser.GzipDecompress gzipParser;
     ArrayList<Integer> lz77Parsing;
     ArrayList<Pair<Integer, Integer>> factorization;
@@ -38,6 +42,11 @@ public class LZ77_2_SLP {
 
     }
 
+    /**
+     * Parse the input file to obtian the LZ77 factorization
+     * 
+     * @param file input .gz file
+     */
     public void parseGzip(String file) {
         /* Parse input .gz file into LZ77 parsing */
         ArrayList<Integer> lz77Parsing = new ArrayList<>();
@@ -55,7 +64,18 @@ public class LZ77_2_SLP {
             factorization.add(new Pair<Integer, Integer>(lz77Parsing.get(i), lz77Parsing.get(i + 1)));
         }
 
-        for (Pair p : factorization) {
+        /* Convert backreferencing LZ77 into position referencing LZ77 */
+        int position = 0;
+        for (Pair<Integer, Integer> p : factorization) {
+            if (p.second.equals(0)) {
+                position += 1;
+            } else {
+                p.first = (position - (int) p.first);
+                position += (int) p.second;
+
+            }
+        }
+        for (Pair<Integer, Integer> p : factorization) {
             System.out.println(p.first + "," + p.second);
         }
 
@@ -80,7 +100,7 @@ public class LZ77_2_SLP {
         /* Save to file */
         file = file.substring(0, file.length() - 3);
         try {
-            PrintWriter outputWriter = new PrintWriter(file);
+            PrintWriter outputWriter = new PrintWriter(file + ".cfg");
             for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
                 outputWriter.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
                 System.out.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
@@ -93,6 +113,12 @@ public class LZ77_2_SLP {
 
     }
 
+    /**
+     * Test method
+     * 
+     * @return true if the result of decompressing the SLP matches that of
+     *         decompressing .gz file.
+     */
     public boolean testResult() {
         return this.text.equals(new SLP_2_Text().toText(grammar));
     }

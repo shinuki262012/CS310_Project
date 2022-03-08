@@ -1,17 +1,17 @@
 package slp;
 
-import java.util.*;
-
-import javax.swing.plaf.synth.SynthSpinnerUI;
-
 import slp.text_slp.*;
 import slp.lz77_slp.*;
 import slp.util.*;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.util.Scanner;
+import java.io.File;
 
+/**
+ * 
+ * 
+ * @author Tianlong Zhong
+ */
 public class Main {
 
     public static Scanner inputScanner;
@@ -39,7 +39,7 @@ public class Main {
         while (true) {
             System.out.println("\nMenu: ");
             System.out.println("==================");
-            System.out.println("1 - Texts to SLP");
+            System.out.println("1 - Text to SLP");
             System.out.println("2 - LZ77 to SLP");
             System.out.println("3 - SLP to LZ77");
             System.out.println("q - Exit");
@@ -110,23 +110,8 @@ public class Main {
     }
 
     public static void slp_2_lz77_menu() throws GeneralException {
-        System.out.println("Choose the file to convert: ");
-        String file = inputScanner.nextLine().toString().trim();
-        try {
-            if (file.isEmpty()) {
-                throw new GeneralException("No file was given");
-            }
-            if (!new File(file).isFile()) {
-                throw new GeneralException("Error: input file does not exist: " + file);
-            }
-            if (new File(file).isDirectory()) {
-                throw new GeneralException("Error: input file is a directory: " + file);
-            }
-            new SLP_2_LZ77().SLP2LZ77(file);
-        } catch (GeneralException e) {
-            System.err.println(e.getMessage());
-            // System.exit(1);
-        }
+        slp2lz77 = new SLP_2_LZ77();
+        slp2lz77.main(null);
     }
 
 }

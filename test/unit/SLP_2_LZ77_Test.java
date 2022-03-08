@@ -5,11 +5,9 @@ import java.util.HashMap;
 
 import slp.util.*;
 import slp.lz77_slp.*;
-import slp.text_slp.Folca;
 import slp.text_slp.SLP_2_Text;
 
 import org.junit.Test;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 /* .gz file -> .cfg file, test by comparing the results of coverting them to text */

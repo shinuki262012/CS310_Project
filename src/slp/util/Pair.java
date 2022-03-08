@@ -2,6 +2,11 @@ package slp.util;
 
 import java.io.Serializable;
 
+/**
+ * Represent the RHS of a production rule: A -> BC / A -> a.
+ * 
+ * @author Tianlong Zhong
+ */
 public final class Pair<V1, V2> implements Serializable {
 
     public V1 first;

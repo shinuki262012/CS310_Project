@@ -1,17 +1,21 @@
 package slp.lz77_slp;
 
+import slp.util.*;
+
 import java.io.PrintWriter;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Stack;
 
-import slp.util.BinaryTreeNode;
-import slp.util.Pair;
-import slp.util.ParseCFG;
+import javax.print.attribute.standard.OutputDeviceAssigned;
 
+/**
+ * Convert the SLP into LZ77 factorization
+ * 
+ * @author Tianlong Zhong
+ */
 public class SLP_2_LZ77 {
     // SLP as CFG
     public Map<String, Pair<String, String>> cfg = new HashMap<String, Pair<String, String>>();
@@ -177,25 +181,98 @@ public class SLP_2_LZ77 {
     }
 
     public String decompressLZ77() {
-        for (Pair<Integer, Integer> p : lz77) {
-            System.out.println("==========" + p.first + "," + p.second);
-        }
-
         StringBuffer sb = new StringBuffer();
         for (Pair<Integer, Integer> p : this.lz77) {
             if (p.second == 0) {
-                System.out.println("next char is " + (char) (int) p.first);
+                // System.out.println("next char is " + (char) (int) p.first);
                 sb.append((char) (int) p.first);
             } else {
                 for (int i = 0; i < p.second; i++) {
                     char nextChar = sb.charAt(p.first + i);
-                    System.out.println("next char is " + nextChar);
+                    // System.out.println("next char is " + nextChar);
                     sb.append(nextChar);
                 }
             }
         }
-        System.out.println("Decompressed String: " + new String(sb));
+        // System.out.println("Decompressed String: " + new String(sb));
         return new String(sb);
     }
 
+    private void decompressLZ77(ArrayList<Pair<Integer, Integer>> lz77encoding, String file) {
+        try {
+            PrintWriter outputWriter = new PrintWriter(file + "(1)");
+            StringBuffer sb = new StringBuffer();
+            for (Pair<Integer, Integer> p : lz77encoding) {
+                if (p.second == 0) {
+                    sb.append((char) (int) p.first);
+                } else {
+                    for (int i = 0; i < p.second; i++) {
+                        char nextChar = sb.charAt(p.first + i);
+                        sb.append(nextChar);
+                    }
+                }
+            }
+            outputWriter.print(new String(sb));
+            System.out.println("Output successfully saved to " + file + "(1) \n");
+            outputWriter.close();
+        } catch (Exception e) {
+            System.out.println("Failed to save the output");
+        }
+    }
+
+    public void main(String[] args) {
+        while (true) {
+            // Display options
+            System.out.println("1 - slp to lz77");
+            System.out.println("2 - decompress lz77");
+            System.out.println("q - Exit");
+            String inputs = slp.Main.inputScanner.nextLine().toString().trim();
+            if (inputs.isEmpty()) {
+                System.out.println("No option was given\n");
+                break;
+            }
+            if (inputs.charAt(0) == 'q') {
+                System.out.println("Exiting...\n");
+                break;
+            }
+            if (inputs.charAt(0) == '1') {
+                System.out.println("Choose a .cfg file to convert: ");
+                String file = slp.Main.inputScanner.nextLine().toString().trim();
+                try {
+                    if (file.isEmpty()) {
+                        throw new GeneralException("No file was given");
+                    }
+                    if (!new File(file).isFile()) {
+                        throw new GeneralException("Error: input file does not exist: " + file);
+                    }
+                    if (new File(file).isDirectory()) {
+                        throw new GeneralException("Error: input is a directory: " + file);
+                    }
+                    new SLP_2_LZ77().SLP2LZ77(file);
+                } catch (GeneralException e) {
+                    System.err.println(e.getMessage());
+                    // System.exit(1);
+                }
+            } else if (inputs.charAt(0) == '2') {
+                System.out.println("Choose a .lz77 file to covert:");
+                String file = slp.Main.inputScanner.nextLine().toString().trim();
+                if (file.isEmpty()) {
+                    System.out.println("No file was given.");
+                    break;
+                }
+                if (!new File(file).isFile()) {
+                    System.out.println("Error: input file does not exist: " + file);
+                    break;
+                }
+                if (new File(file).isDirectory()) {
+                    System.out.println("Error: input is a directory: " + file);
+                    break;
+                }
+                decompressLZ77(new ParseLZ77encoding(file).getLZ77(), file.substring(0, file.length() - 5));
+            } else {
+                System.out.println("Please enter a valid option. \n");
+                break;
+            }
+        }
+    }
 }

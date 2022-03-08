@@ -7,6 +7,12 @@ import java.util.Stack;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 
+/**
+ * Encode a context free grammar(CFG) into a post-order partial parse
+ * tree(POPPT).
+ * 
+ * @author Tianlong Zhong
+ */
 public class CFG_2_POPPT {
     public static LinkedList<String> poppt;
 
@@ -14,6 +20,12 @@ public class CFG_2_POPPT {
         poppt = new LinkedList<>();
     }
 
+    /**
+     * Encode the input grammmar into POPPT.
+     * 
+     * @param cfg input context free grammar
+     * @return Post-order partial parse tree
+     */
     public LinkedList<String> cfg2poppt(Map<String, Pair<String, String>> cfg) {
         // Build a POPPT out of the POSLP
         LinkedList<Byte> bitStream = new LinkedList<>();
@@ -53,6 +65,12 @@ public class CFG_2_POPPT {
         return poppt;
     }
 
+    /**
+     * Encode the input CFG and store into the file.
+     * 
+     * @param cfg  input CFG
+     * @param file file name
+     */
     public void cfg2poppt(Map<String, Pair<String, String>> cfg, String file) {
         try {
             cfg2poppt(cfg);

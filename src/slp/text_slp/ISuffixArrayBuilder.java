@@ -5,13 +5,15 @@ package slp.text_slp;
  * symbols.
  * 
  * @see #buildSuffixArray(int[], int, int)
+ * 
+ *      https://github.com/carrotsearch/jsuffixarrays/blob/master/src/main/java/org/jsuffixarrays/ISuffixArrayBuilder.java
  */
 public interface ISuffixArrayBuilder {
     /**
      * Computes suffix array for sequence of symbols (integers). The processed
      * sequence is a subsequence of <code>input</code> determined by
      * <code>start</code> and <code>length</code> parameters.
-     * <p>
+     * 
      * Concrete implementations may have additional requirements and constraints
      * concerning the input. For example, it is quite common that extra cells are
      * required after <code>start + length</code> to store special marker symbols.

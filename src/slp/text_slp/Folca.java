@@ -1,6 +1,15 @@
 package slp.text_slp;
 
-import java.io.*;
+import slp.Main;
+import slp.util.*;
+
+import java.io.IOException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Map;
@@ -8,25 +17,18 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Stack;
-
-import slp.Main;
-import slp.util.CFG_2_POPPT;
-import slp.util.POPPT_2_TEXT;
-import slp.util.Pair;
-import slp.util.ParseCFG;
-import slp.util.ParsePOPPT;
-
 import java.util.Iterator;
-import java.util.Set;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
 import java.util.Queue;
 
 /**
- * Fully Online LCA implementation based on S. Maruyama and Y. Tabei,
- * "Fully Online Grammar Compression in Constant Space," 2014 Data Compression
- * Conference, 2014, pp. 173-182, doi: 10.1109/DCC.2014.69.
+ * Online grammar based compression.
+ * Fully Online Least Common Ancestor(FOLCA) implementation based on
+ * S. Maruyama and Y. Tabei,
+ * "Fully Online Grammar Compression in Constant Space,"
+ * 2014 Data Compression Conference, 2014, pp. 173-182,
+ * doi: 10.1109/DCC.2014.69.
  *
+ * @author Tianlong Zhong
  */
 public class Folca {
     public static ArrayList<Queue<String>> queues;
@@ -41,9 +43,9 @@ public class Folca {
             "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
     public Folca() {
-        queues = new ArrayList<Queue<String>>();
+        queues = new ArrayList<Queue<String>>(); // queue of layers of parse tree
         D = new HashMap<String, Pair<String, String>>(); // phrase dictionary
-        D_r = new HashMap<String, String>();
+        D_r = new HashMap<String, String>(); // reverse dictionary
         freq_counter = new HashMap<String, Integer>(); // frequency counter
         k = 1024; // max size of the pharse dictionary
         ep = 5; // vacancy rate
@@ -51,10 +53,8 @@ public class Folca {
     }
 
     /**
-     * Fully Online LCA implementation
+     * FOLCA implementation
      * Online algorithm that compresses the input text into SLP in the form of CFG
-     *
-     *
      *
      * @param output_cfg whether to output a cfg or encoded cfg
      */
@@ -64,13 +64,16 @@ public class Folca {
         q0.add("");
         q0.add("");
         queues.add(q0);
+
+        /* Get input file */
         System.out.println("Choose the file to convert: ");
         String file = Main.inputScanner.nextLine();
         // Check if file exists
         if (!new File(file).isFile()) {
-            System.out.println("Error: File does not exist.");
+            System.out.println("Error: input is not a file: " + file);
             return;
         }
+        /* Main loop */
         try {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
@@ -113,19 +116,19 @@ public class Folca {
             System.out.println("Failed to read the file");
         }
         // DELETE
-        for (Map.Entry<String, Pair<String, String>> rule : D.entrySet()) {
-            System.out.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
-        }
-        for (Map.Entry<String, String> rule : D_r.entrySet()) {
-            System.out.println(rule.getKey() + "<-" + rule.getValue());
-        }
+        // for (Map.Entry<String, Pair<String, String>> rule : D.entrySet()) {
+        // System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
+        // rule.getValue().second);
+        // }
+        // for (Map.Entry<String, String> rule : D_r.entrySet()) {
+        // System.out.println(rule.getKey() + "<-" + rule.getValue());
+        // }
 
         // Get the starting symbol: the root node in the parse tree
         queues.get(queues.size() - 1).poll();
         queues.get(queues.size() - 1).poll();
         String start_symbol = queues.get(queues.size() - 1).poll();
-        System.out.println("hi");
-        System.out.println("Start symbol: " + start_symbol);
+        // System.out.println("Start symbol: " + start_symbol);
         // Replace the start symbol as S00
         D.put("S00", D.remove(start_symbol));
         D_r.put(D.get("S00").first + D.get("S00").second, "S00");
@@ -152,8 +155,6 @@ public class Folca {
 
     /**
      * Process the given character X inserted into the given level
-     *
-     *
      *
      * @param level the level where X is inserted into
      * @param X     input character X
@@ -211,8 +212,6 @@ public class Folca {
      * Decide whether position pos in q_k is a landmark: the pair q_k[pos, pos+1] is
      * replaced or not
      *
-     *
-     *
      * @param q_k substring of length 4: q_k[pos-1, pos, pos+1, pos+2]
      * @param pos position
      * @return whether position pos in q_k is a landmark
@@ -242,8 +241,6 @@ public class Folca {
     /**
      * queue = {i-1, i, i+1, i+2}, check if queue[i, i+1] is a minimal pair
      * queue[i, i+1] is a minimal pair if queue[i+1] < queue[i], queue[i+2]
-     *
-     *
      *
      * @param queue given queue of length 4
      * @param pos   given position
@@ -298,8 +295,6 @@ public class Folca {
      * incresing/decreasing order, and lca(queue[i, i+1]) > lca(queue[i-1, i]),
      * lca(queue[i+1, i+2])
      *
-     *
-     *
      * @param queue given queue of length 4
      * @param pos   given position
      * @return whether queue[i, i+1] is a maximal pair
@@ -321,8 +316,6 @@ public class Folca {
 
     /**
      * Calculate the least common ancestor of the input pair of strings.
-     *
-     *
      *
      * @param i character
      * @param j character
@@ -350,8 +343,6 @@ public class Folca {
     /**
      * Generate a production rule and add to the phrase dictionary
      *
-     *
-     *
      * @param X first symbol in pair
      * @param Y second symbol in pair
      * @return the nonterminal that produces the pair
@@ -374,9 +365,6 @@ public class Folca {
     /**
      * Similar as update() but removes infrequent production rules
      *
-     *
-     * s
-     * 
      * @param X first symbol in pair
      * @param Y second symbol in pair
      * @return the nonterminal that produces the pair
@@ -473,10 +461,6 @@ public class Folca {
         return encoding;
     }
 
-    // TODO
-    public void cfg_2_tree() {
-    }
-
     /**
      * Decompress the POPPT into text, and store to the file
      *
@@ -550,7 +534,7 @@ public class Folca {
         }
     }
 
-    public static void main(String[] args) {
+    public void main(String[] args) {
         Folca f = new Folca();
         String file;
         while (true) {
@@ -661,7 +645,7 @@ public class Folca {
                         // cfg -> poppt -> text
                         CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
                         f.poppt_2_txt(cfg2poppt.cfg2poppt(new ParseCFG(file).getCFG()),
-                                file.substring(0, file.length() - 4) + "(1)");
+                                file.substring(0, file.length() - 4));
                     }
                     break;
                 }

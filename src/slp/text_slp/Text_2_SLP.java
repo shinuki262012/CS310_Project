@@ -19,39 +19,49 @@ import java.util.HashMap;
  * In: Theoretical Computer Science 616 (Mar. 2014).
  * doi: 10.1007/978-3-319-07566-2_19.
  * 
- * @author Tian
+ * @author Tianlong Zhong
  */
 public class Text_2_SLP {
-    public static long nonTerminalCounter;
-    public static Map<String, Pair<String, String>> grammar;
+    public static long nonTerminalCounter; // nonterminal counter
+    public static Map<String, Pair<String, String>> grammar; // SLP
     public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
             "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
+    /**
+     * Cosntructor
+     */
     public Text_2_SLP() {
         nonTerminalCounter = 0;
         grammar = new HashMap<String, Pair<String, String>>();
     }
 
+    /**
+     * 
+     * @param output_cfg whether output as a context-free grammar
+     */
     public void text_2_slp(boolean output_cfg) {
         System.out.println("Choose the file to convert: ");
         String file = Main.inputScanner.nextLine();
         // Check if file exists
         if (!new File(file).isFile()) {
-            System.out.println("Error: File does not exist.");
+            System.out.println("Error: input is not a file: " + file);
             return;
         }
+
         // Read input file into a String
         String input = "";
         try {
             input = new String(Files.readString(Paths.get(file)));
         } catch (IOException e) {
-            System.out.println("Failed to read file.");
+            System.out.println("Error: Failed to read fil: " + file);
         }
 
+        /* Compress the input */
         try {
             PrintWriter outputWriter = new PrintWriter(file + ".cfg");
             // Compress the input
             compress(input);
+
             // Save as CFG
             if (output_cfg) {
                 for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
@@ -59,6 +69,7 @@ public class Text_2_SLP {
                 }
                 System.out.println("Output successfully saved to " + file + ".cfg \n");
             }
+
             // Save as a succinct representation
             else {
                 CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
@@ -71,14 +82,16 @@ public class Text_2_SLP {
     }
 
     /**
-     * Text to Grammar
+     * Compress input string into SLP
+     * 
+     * @param input input string
+     * @return SLP that generates the input string
      */
     public Map<String, Pair<String, String>> compress(String input) {
+
+        /* --- Compute the LZ77 factorization of the input --- */
         int w = input.length();
-        // Compute the LZ77 factorization of the input
-        Factorization fac = new Factorization();
-        ArrayList<Pair<Integer, Integer>> factorization = Factorization.factorization(input);
-        // ArrayList<Pair<Integer, Integer>> factorization = fac.factorization(input);
+        ArrayList<Pair<Integer, Integer>> factorization = new Factorization().factorization(input);
 
         // Initialise tables start, end and pair
         int[] start = new int[w]; // stores beginning of factors, -1: not the beginning of a factor
@@ -87,15 +100,9 @@ public class Text_2_SLP {
         Arrays.fill(start, -1);
         Arrays.fill(end, -1);
         Arrays.fill(pair, 0);
-        // System.out.println(" ");
-        // System.out.println("Start: " + Arrays.toString(start));
-        // System.out.println("End: " + Arrays.toString(end));
-        // System.out.println("Pair: " + Arrays.toString(pair));
-        // System.out.println("------------------------------");
 
         // Populate tables with the factorization
         int curIdx = 0;
-        // System.out.println("LZ77 factorization size: " + factorization.size());
         for (int i = 0; i < factorization.size(); i++) {
             int first = factorization.get(i).first;
             int second = factorization.get(i).second;
@@ -113,28 +120,17 @@ public class Text_2_SLP {
 
         String[] input_array = input.split("");
 
-        // Main loop
+        /* --- Main loop --- */
         while (input_array.length > 1) {
-            // Compute a pairing of w using pairing()
-            pairing(input_array, start, end, pair);
-
-            // Replace the pairs using pairReplacement()
-            input_array = pairReplacement(input_array, start, end, pair);
-            // System.out.println("pairing: input: " + String.join("", input_array));
+            pairing(input_array, start, end, pair); // devise pairings of w
+            input_array = pairReplacement(input_array, start, end, pair); // replace the pairs
         }
 
-        String start_symbol = long_2_nonterminal(nonTerminalCounter - 1);
         // Change the start symbol to S00
+        String start_symbol = long_2_nonterminal(nonTerminalCounter - 1);
         grammar.put("S00", grammar.get(start_symbol));
         grammar.remove(start_symbol);
 
-        // Check grammar by decompressing and compare
-        // SLP_to_text decompresser = new SLP_to_text();
-        // String decompressed_string = decompresser.GtoT(grammar);
-        // System.out.println(decompressed_string);
-        // if (decompressed_string.equals(input))
-        // System.out.println("YES");
-        // Return the constructed grammar
         return grammar;
     }
 
@@ -191,6 +187,13 @@ public class Text_2_SLP {
 
     }
 
+    /**
+     * 
+     * @param input array of input string
+     * @param start beginning of factors
+     * @param end   end of factors
+     * @param pair  pairing info
+     */
     private void pairing(String[] input, int[] start, int[] end, int[] pair) {
         int w = input.length;
         // System.out.println(input.length);
@@ -234,7 +237,7 @@ public class Text_2_SLP {
                 }
             }
             if (i < w) {
-                if (start[i] == -1) { // w[i] is a free lettero
+                if (start[i] == -1) { // w[i] is a free letter
                     if (pair[i - 1] == 0) { // if previous letter is not paired
                         pair[i - 1] = 1; // pair them
                         pair[i] = 2;
@@ -249,6 +252,14 @@ public class Text_2_SLP {
         return;
     }
 
+    /**
+     * 
+     * @param input array of input string
+     * @param start beginning of factors
+     * @param end   end of factors
+     * @param pair  pairing info
+     * @return updated array of input string
+     */
     private String[] pairReplacement(String[] input, int[] start, int[] end, int[] pair) {
         String[] inputP = new String[input.length]; // the new word after replacing the pairing
 
@@ -258,7 +269,7 @@ public class Text_2_SLP {
         // System.out.println("Pair: " + Arrays.toString(pair));
         // System.out.println("================" + String.join("", input));
 
-        int[] newpos = new int[input.length]; //
+        int[] newpos = new int[input.length];
         Arrays.fill(newpos, -1);
 
         int i = 0;
@@ -299,7 +310,6 @@ public class Text_2_SLP {
                         iP++;
                     } else {
                         String nonTerminal = long_2_nonterminal(nonTerminalCounter);
-                        System.out.println("nonTerminal: " + nonTerminal);
                         nonTerminalCounter++;
                         Pair<String, String> rhs = new Pair<String, String>(input[i], input[i + 1]);
                         inputP[iP] = nonTerminal; // Paired free letters are replaced by a fresh letter
@@ -326,7 +336,7 @@ public class Text_2_SLP {
         return alphabets[(int) x % 26] + String.valueOf(n);
     }
 
-    public static void main(String[] args) {
+    public void main(String[] args) {
         String file;
         while (true) {
             // Display options
@@ -434,7 +444,7 @@ public class Text_2_SLP {
                     } else {
                         // cfg -> text
                         SLP_2_Text s = new SLP_2_Text();
-                        s.toText(new ParseCFG(file).getCFG());
+                        s.toText(new ParseCFG(file).getCFG(), file.substring(0, file.length() - 4));
                     }
                     break;
                 }

@@ -1,5 +1,10 @@
 package slp.util;
 
+/**
+ * Represent a production rule of form A -> BC or A -> b.
+ * 
+ * @author Tianlong Zhong
+ */
 public class BinaryTreeNode<E extends Comparable<E>> {
 
     private E value;
