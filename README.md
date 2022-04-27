@@ -30,7 +30,7 @@ To run: type the following in `bin`
 
 > java slp.Main
 
-###Usage
+### Usage
 **Main menu**
 Run the program will display the main menu providing 3 options:
 
