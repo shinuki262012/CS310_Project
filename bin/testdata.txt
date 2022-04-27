@@ -1,0 +1,4 @@
+Test data used include: 
+english20MB and english1024MB (http://pizzachili.dcc.uchile.cl/texts/nlang/)
+einstein(http://pizzachili.dcc.uchile.cl/repcorpus/)
+Escherichia_Coli(http://pizzachili.dcc.uchile.cl/repcorpus/)
