@@ -9,13 +9,18 @@ import java.util.Map;
 import java.util.Stack;
 
 /**
- * Decompress SLP to string/parse tree
+ * Decompress SLP to string or parse tree
  * 
  * @author Tianlong Zhong
  */
 public class SLP_2_Text {
-
-    public String GtoT(Map<String, Pair<String, String>> grammar) {
+    /**
+     * Decompress the grammar in a BFS manner
+     * 
+     * @param grammar input SLP
+     * @return
+     */
+    public String bfsDecompress(Map<String, Pair<String, String>> grammar) {
         ArrayList<String> text = new ArrayList<>();
         ArrayList<String> newText = new ArrayList<>();
         ArrayList<BinaryTreeNode<String>> layer = new ArrayList<>();

@@ -15,7 +15,7 @@ import java.util.HashMap;
 
 /**
  * Grammar based compression implementation based on
- * Artur Je˙z. "A Really Simple Approximation of Smallest Grammar".
+ * Artur Jeż. "A Really Simple Approximation of Smallest Grammar".
  * In: Theoretical Computer Science 616 (Mar. 2014).
  * doi: 10.1007/978-3-319-07566-2_19.
  * 
@@ -36,11 +36,10 @@ public class Text_2_SLP {
     }
 
     /**
-     * 
-     * @param output_cfg whether output as a context-free grammar
+     * Main function for compressing
      */
-    public void text_2_slp(boolean output_cfg) {
-        System.out.println("Choose the file to convert: ");
+    public void text_2_slp() {
+        System.out.println("Choose the file to compress: ");
         String file = Main.inputScanner.nextLine();
         // Check if file exists
         if (!new File(file).isFile()) {
@@ -56,25 +55,53 @@ public class Text_2_SLP {
             System.out.println("Error: Failed to read fil: " + file);
         }
 
-        /* Compress the input */
+        // Compress the input, output to file
+        try {
+            PrintWriter outputWriter = new PrintWriter(file + ".cfg");
+            // Compress the input
+            compress(input);
+            // Output to a file
+            for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
+                outputWriter.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
+            }
+            System.out.println("Output successfully saved to " + file + ".cfg \n");
+            outputWriter.close();
+        } catch (Exception e) {
+            System.out.println("Failed to save the output");
+        }
+    }
+
+    /**
+     * Method used for given input file
+     * 
+     * @param file input file
+     */
+    public void text_2_slp(String file) {
+        // Check if file exists
+        if (!new File(file).isFile()) {
+            System.out.println("Error: input is not a file: " + file);
+            return;
+        }
+
+        // Read input file into a String
+        String input = "";
+        try {
+            input = new String(Files.readString(Paths.get(file)));
+        } catch (IOException e) {
+            System.out.println("Error: Failed to read fil: " + file);
+        }
+
+        // Compress the input, output to file
         try {
             PrintWriter outputWriter = new PrintWriter(file + ".cfg");
             // Compress the input
             compress(input);
 
-            // Save as CFG
-            if (output_cfg) {
-                for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
-                    outputWriter.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
-                }
-                System.out.println("Output successfully saved to " + file + ".cfg \n");
+            // Output to a file
+            for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
+                outputWriter.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
             }
-
-            // Save as a succinct representation
-            else {
-                CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
-                cfg2poppt.cfg2poppt(grammar, file);
-            }
+            System.out.println("Output successfully saved to " + file + ".cfg \n");
             outputWriter.close();
         } catch (Exception e) {
             System.out.println("Failed to save the output");
@@ -134,6 +161,13 @@ public class Text_2_SLP {
         return grammar;
     }
 
+    /**
+     * Compress the given input into SLP using given LZ77 factorization of the input
+     * 
+     * @param input         input string
+     * @param factorization the LZ77 factorization of the input string
+     * @return SLP that generated the input string
+     */
     public Map<String, Pair<String, String>> compress(String input, ArrayList<Pair<Integer, Integer>> factorization) {
         int w = input.length();
         // Initialise tables start, end and pair
@@ -143,11 +177,6 @@ public class Text_2_SLP {
         Arrays.fill(start, -1);
         Arrays.fill(end, -1);
         Arrays.fill(pair, 0);
-        // System.out.println(" ");
-        // System.out.println("Start: " + Arrays.toString(start));
-        // System.out.println("End: " + Arrays.toString(end));
-        // System.out.println("Pair: " + Arrays.toString(pair));
-        // System.out.println("------------------------------");
 
         // Populate tables with the factorization
         int curIdx = 0;
@@ -159,7 +188,7 @@ public class Text_2_SLP {
                 start[curIdx] = curIdx;
                 end[curIdx] = 1;
                 curIdx += 1;
-            } else {
+            } else { // a factor
                 start[curIdx] = first;
                 curIdx += second;
                 end[curIdx - 1] = 1;
@@ -175,7 +204,6 @@ public class Text_2_SLP {
 
             // Replace the pairs using pairReplacement()
             input_array = pairReplacement(input_array, start, end, pair);
-            // System.out.println("pairing: input: " + String.join("", input_array));
         }
 
         // Change the start symbol to S00
@@ -184,10 +212,10 @@ public class Text_2_SLP {
         grammar.remove(start_symbol);
 
         return grammar;
-
     }
 
     /**
+     * Devise pairings
      * 
      * @param input array of input string
      * @param start beginning of factors
@@ -196,11 +224,6 @@ public class Text_2_SLP {
      */
     private void pairing(String[] input, int[] start, int[] end, int[] pair) {
         int w = input.length;
-        // System.out.println(input.length);
-        // System.out.println("pairing: input: " + String.join("", input));
-        // System.out.println("Start: " + Arrays.toString(start));
-        // System.out.println("End: " + Arrays.toString(end));
-        // System.out.println("Pair: " + Arrays.toString(pair));
 
         // Check if the first letter is a free letter
         if (start[0] != -1) {
@@ -253,6 +276,7 @@ public class Text_2_SLP {
     }
 
     /**
+     * Replace devised pairings with nonterminals
      * 
      * @param input array of input string
      * @param start beginning of factors
@@ -262,13 +286,6 @@ public class Text_2_SLP {
      */
     private String[] pairReplacement(String[] input, int[] start, int[] end, int[] pair) {
         String[] inputP = new String[input.length]; // the new word after replacing the pairing
-
-        // System.out.println("Replace: ----------------------------------");
-        // System.out.println("Start: " + Arrays.toString(start));
-        // System.out.println("End: " + Arrays.toString(end));
-        // System.out.println("Pair: " + Arrays.toString(pair));
-        // System.out.println("================" + String.join("", input));
-
         int[] newpos = new int[input.length];
         Arrays.fill(newpos, -1);
 
@@ -277,18 +294,14 @@ public class Text_2_SLP {
         int jP = 0;
         while (i < input.length) {
 
-            // System.out.println("i = " + i + ", input[i] = " + input[i]);
             if (start[i] != -1) { // w[i] is the first element of a factor
-
                 start[iP] = newpos[start[i]];
                 jP = newpos[start[i]]; // factor in the new word begins at the position corresponding to the
                 // beginning of the current factor
                 start[i] = -1;
-
                 do {
                     newpos[i] = iP; // position corresponding to i
                     inputP[iP] = inputP[jP]; // copy the letter according to new factorization
-                    // System.out.println("copy the : " + String.join("", input));
                     iP++;
                     jP++;
                     if (pair[i] == 1) {
@@ -301,7 +314,6 @@ public class Text_2_SLP {
                 end[i - 1] = -1; // Clearing obsolete info
             }
             if (i < input.length) {
-
                 if (start[i] == -1) { // w[i] is a free letter
                     newpos[i] = iP;
                     if (pair[i] == 0) {
@@ -336,16 +348,18 @@ public class Text_2_SLP {
         return alphabets[(int) x % 26] + String.valueOf(n);
     }
 
+    /**
+     * Display the menu
+     * 
+     * @param args
+     */
     public void main(String[] args) {
         String file;
         while (true) {
             // Display options
-            System.out.println("1 - text to succinct grammar");
-            System.out.println("2 - text to cfg");
-            System.out.println("3 - cfg to succinct grammar");
-            System.out.println("4 - cfg to grammar tree");
-            System.out.println("5 - succinct grammar to text");
-            System.out.println("6 - cfg to text");
+            System.out.println("1 - text to cfg");
+            System.out.println("2 - cfg to grammar tree");
+            System.out.println("3 - cfg to text");
             System.out.println("q - Exit");
             String inputs = Main.inputScanner.nextLine().toString().trim();
             if (inputs.isEmpty()) {
@@ -358,42 +372,13 @@ public class Text_2_SLP {
             }
             switch (inputs.charAt(0)) {
                 case '1': {
-                    // text -> cfg -> enc
                     Text_2_SLP t = new Text_2_SLP();
-                    t.text_2_slp(false);
+                    t.text_2_slp();
                     break;
                 }
                 case '2': {
-                    Text_2_SLP t = new Text_2_SLP();
-                    t.text_2_slp(true);
-                    break;
-                }
-                case '3': {
-                    // cfg -> enc
-                    System.out.println("Choose the file to convert: ");
-                    file = Main.inputScanner.nextLine();
-                    // Check if file exists
-                    if (!new File(file).isFile()) {
-                        System.out.println("Error: File does not exist.");
-                        break;
-                    }
-                    // Check file format
-                    if (!file.substring(file.length() - 4, file.length()).equals(".cfg")) {
-                        System.out.println("Wrong file type, please select a file of type .cfg");
-                    } else {
-                        // Get input cfg
-                        HashMap<String, Pair<String, String>> cfg = new ParseCFG(file).getCFG();
-                        // Get the file name
-                        file = file.substring(0, file.length() - 4);
-                        // Encode cfg
-                        CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
-                        cfg2poppt.cfg2poppt(cfg, file);
-                        break;
-                    }
-                }
-                case '4': {
                     // cfg -> tree
-                    System.out.println("Choose the file to convert: ");
+                    System.out.println("Choose the file to visualise: ");
                     file = Main.inputScanner.nextLine();
                     // Check if file exists
                     if (!new File(file).isFile()) {
@@ -410,29 +395,11 @@ public class Text_2_SLP {
                         break;
                     }
                 }
-                case '5': {
+                case '3': {
                     // Get input file
-                    System.out.println("Choose the file to convert: ");
+                    System.out.println("Choose the file to decompress: ");
                     file = slp.Main.inputScanner.nextLine();
-                    // Check if file exists
-                    if (!new File(file).isFile()) {
-                        System.out.println("Error: File does not exist.");
-                        break;
-                    }
-                    // Check file format
-                    if (!file.substring(file.length() - 4, file.length()).equals(".slp")) {
-                        System.out.println("Wrong file type, please select a file of type .slp");
-                    } else {
-                        // poppt -> text
-                        POPPT_2_TEXT p = new POPPT_2_TEXT();
-                        p.poppt_2_text(new ParsePOPPT().parsePOPPT(file), file.substring(0, file.length() - 4));
-                    }
-                    break;
-                }
-                case '6': {
-                    // Get input file
-                    System.out.println("Choose the file to convert: ");
-                    file = slp.Main.inputScanner.nextLine();
+
                     // Check if file exists
                     if (!new File(file).isFile()) {
                         System.out.println("Error: File does not exist.");
@@ -446,6 +413,7 @@ public class Text_2_SLP {
                         SLP_2_Text s = new SLP_2_Text();
                         s.toText(new ParseCFG(file).getCFG(), file.substring(0, file.length() - 4));
                     }
+
                     break;
                 }
                 default:

@@ -31,32 +31,34 @@ import java.util.Queue;
  * @author Tianlong Zhong
  */
 public class Folca {
-    public static ArrayList<Queue<String>> queues;
-    public static Map<String, Pair<String, String>> D;
-    public static Map<String, Integer> freq_counter;
-    public static int k;
-    public static double ep;
-
-    public static Map<String, String> D_r;
-    public static long nonTerminalCounter;
+    public static ArrayList<Queue<String>> queues; // queue of layers of parse tree
+    public static Map<String, Pair<String, String>> dict; // phrase dictionary
+    public static Map<String, String> reverseDict; // reverse dictionary
+    public static Map<String, Integer> freqCounter; // frequency counter
+    public static int maxDictSize; // Max size of the reverse dictionary
+    public static double vacancyRate; // Vacancy rate
+    public static long nonTerminalCounter; // counter for nontermials
     public static String[] alphabets = { "A", "B", "C", "D", "E", "F", "G",
             "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
+    /**
+     * Constructor
+     */
     public Folca() {
-        queues = new ArrayList<Queue<String>>(); // queue of layers of parse tree
-        D = new HashMap<String, Pair<String, String>>(); // phrase dictionary
-        D_r = new HashMap<String, String>(); // reverse dictionary
-        freq_counter = new HashMap<String, Integer>(); // frequency counter
-        k = 1024; // max size of the pharse dictionary
-        ep = 5; // vacancy rate
-        nonTerminalCounter = 0; // counter for nontermials
+        queues = new ArrayList<Queue<String>>();
+        dict = new HashMap<String, Pair<String, String>>();
+        reverseDict = new HashMap<String, String>();
+        freqCounter = new HashMap<String, Integer>();
+        maxDictSize = 1024;
+        vacancyRate = 5;
+        nonTerminalCounter = 0;
     }
 
     /**
      * FOLCA implementation
      * Online algorithm that compresses the input text into SLP in the form of CFG
      *
-     * @param output_cfg whether to output a cfg or encoded cfg
+     * @param output_cfg whether to output a cfg or encoded cfg(poppt)
      */
     public void folca(boolean output_cfg) {
         // Initialize queue with 2 dummy symbols
@@ -66,8 +68,9 @@ public class Folca {
         queues.add(q0);
 
         /* Get input file */
-        System.out.println("Choose the file to convert: ");
+        System.out.println("Choose the file to compress: ");
         String file = Main.inputScanner.nextLine();
+
         // Check if file exists
         if (!new File(file).isFile()) {
             System.out.println("Error: input is not a file: " + file);
@@ -101,8 +104,9 @@ public class Folca {
                             String qk4 = queues.get(i).poll();
                             queues.get(i).add(qk3);
                             queues.get(i).add(qk4);
-                            // String Y = update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
-                            String Y = freqCountingUpdate(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                            String Y = update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                            // String Y = freqCountingUpdate(qk3, qk4); // replace q_k[3], q_k[4] with
+                            // nonterminal Y
                             processSymbol(i + 1, Y); // add the nonterminal Y to upper tree level
                         }
                     }
@@ -115,29 +119,111 @@ public class Folca {
         } catch (Exception e) {
             System.out.println("Failed to read the file");
         }
-        // DELETE
-        // for (Map.Entry<String, Pair<String, String>> rule : D.entrySet()) {
-        // System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
-        // rule.getValue().second);
-        // }
-        // for (Map.Entry<String, String> rule : D_r.entrySet()) {
-        // System.out.println(rule.getKey() + "<-" + rule.getValue());
-        // }
 
         // Get the starting symbol: the root node in the parse tree
         queues.get(queues.size() - 1).poll();
         queues.get(queues.size() - 1).poll();
         String start_symbol = queues.get(queues.size() - 1).poll();
-        // System.out.println("Start symbol: " + start_symbol);
+
         // Replace the start symbol as S00
-        D.put("S00", D.remove(start_symbol));
-        D_r.put(D.get("S00").first + D.get("S00").second, "S00");
+        dict.put("S00", dict.remove(start_symbol));
+        reverseDict.put(dict.get("S00").first + dict.get("S00").second, "S00");
+        // Output the CFG to a file
+        if (output_cfg) {
+            try {
+                PrintWriter outputWriter = new PrintWriter(file + ".cfg");
+                for (Map.Entry<String, Pair<String, String>> rule : dict.entrySet()) {
+                    outputWriter.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
+                }
+                System.out.println("Output successfully saved to " + file + ".cfg");
+
+                outputWriter.close();
+            } catch (Exception e) {
+                System.out.println("Failed to save the output");
+            }
+        }
+        // Encode the CFG into a succinct form and output to a file
+        else {
+            CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
+            cfg2poppt.cfg_2_poppt(dict, file);
+        }
+    }
+
+    /**
+     * 
+     * @param output_cfg whether to output a cfg or encoded cfg(poppt)
+     * @param file       input file
+     */
+    public void compress(boolean output_cfg, String file) {
+        // Initialize queue with 2 dummy symbols
+        Queue<String> q0 = new LinkedList<String>();
+        q0.add("");
+        q0.add("");
+        queues.add(q0);
+
+        // Check if file exists
+        if (!new File(file).isFile()) {
+            System.out.println("Error: input is not a file: " + file);
+            return;
+        }
+        /* Main loop */
+        try {
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+            int c;
+            try {
+                // Read a character and process it
+                while ((c = reader.read()) != -1) {
+                    String character = String.valueOf((char) c);
+                    processSymbol(0, character);
+                }
+                // Finish up
+                boolean finish = false;
+                while (!finish) {
+                    finish = true;
+                    for (int i = 0; i < queues.size() - 1; i++) {
+                        if (queues.get(i).size() == 3) {
+                            queues.get(i).poll();
+                            queues.get(i).poll();
+                            processSymbol(i + 1, queues.get(i).poll());
+                            finish = false;
+                        } else if (queues.get(i).size() == 4) {
+                            queues.get(i).poll();
+                            queues.get(i).poll();
+                            String qk3 = queues.get(i).poll();
+                            String qk4 = queues.get(i).poll();
+                            queues.get(i).add(qk3);
+                            queues.get(i).add(qk4);
+                            String Y = update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                            // String Y = freqCountingUpdate(qk3, qk4); // replace q_k[3], q_k[4] with
+                            // nonterminal Y
+                            processSymbol(i + 1, Y); // add the nonterminal Y to upper tree level
+                        }
+                    }
+                }
+
+                reader.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to read the file");
+        }
+
+        // Get the starting symbol: the root node in the parse tree
+        queues.get(queues.size() - 1).poll();
+        queues.get(queues.size() - 1).poll();
+        String start_symbol = queues.get(queues.size() - 1).poll();
+
+        // Replace the start symbol as S00
+        dict.put("S00", dict.remove(start_symbol));
+        reverseDict.put(dict.get("S00").first + dict.get("S00").second, "S00");
 
         // Output the CFG to a file
         if (output_cfg) {
             try {
                 PrintWriter outputWriter = new PrintWriter(file + ".cfg");
-                for (Map.Entry<String, Pair<String, String>> rule : D.entrySet()) {
+                for (Map.Entry<String, Pair<String, String>> rule : dict.entrySet()) {
                     outputWriter.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
                 }
                 System.out.println("Output successfully saved to " + file + ".cfg");
@@ -149,7 +235,7 @@ public class Folca {
         // Encode the CFG into a succinct form and output to a file
         else {
             CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
-            cfg2poppt.cfg2poppt(D, file);
+            cfg2poppt.cfg_2_poppt(dict, file);
         }
     }
 
@@ -159,11 +245,9 @@ public class Folca {
      * @param level the level where X is inserted into
      * @param X     input character X
      */
-    public void processSymbol(int level, String X) {
-        // System.out.println("Processing " + X);
+    private void processSymbol(int level, String X) {
         Queue<String> q_k = queues.get(level);
         q_k.add(X);
-        // System.out.println(queues.toString());
         if (q_k.size() == 4) {
             if (!landmark(q_k, 1)) { // build a 2-tree: A -> XY
                 if (level + 1 == queues.size()) { // the queue in the next level is not defined yet
@@ -180,8 +264,9 @@ public class Folca {
                 String qk4 = q_k.poll();
                 q_k.add(qk3);
                 q_k.add(qk4);
-                // String Y = update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
-                String Y = freqCountingUpdate(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                String Y = update(qk3, qk4); // replace q_k[3], q_k[4] with nonterminal Y
+                // String Y = freqCountingUpdate(qk3, qk4); // replace q_k[3], q_k[4] with
+                // nonterminal Y
                 processSymbol(level + 1, Y); // add the nonterminal Y to upper tree level
             }
         } else if (q_k.size() == 5) { // build a 2-2-tree: A -> YZ and B -> XA
@@ -200,10 +285,12 @@ public class Folca {
             String qk5 = q_k.poll();
             q_k.add(qk4);
             q_k.add(qk5);
-            // String Y = update(qk4, qk5); // replace q_k[4], q_k[5] with nonterminal Y
-            // String Z = update(qk3, Y); // replace q_k[3], Y with nonterminal Z
-            String Y = freqCountingUpdate(qk4, qk5); // replace q_k[4], q_k[5] with nonterminal Y
-            String Z = freqCountingUpdate(qk3, Y); // replace q_k[3], Y with nonterminal Z
+            String Y = update(qk4, qk5); // replace q_k[4], q_k[5] with nonterminal Y
+            String Z = update(qk3, Y); // replace q_k[3], Y with nonterminal Z
+            // String Y = freqCountingUpdate(qk4, qk5); // replace q_k[4], q_k[5] with
+            // nonterminal Y
+            // String Z = freqCountingUpdate(qk3, Y); // replace q_k[3], Y with nonterminal
+            // Z
             processSymbol(level + 1, Z); // add nonterminal Z to upper tree level
         }
     }
@@ -216,8 +303,7 @@ public class Folca {
      * @param pos position
      * @return whether position pos in q_k is a landmark
      */
-    public boolean landmark(Queue<String> q_k, int pos) {
-        // System.out.println("landmark for" + q_k.toString());
+    private boolean landmark(Queue<String> q_k, int pos) {
         // Copy the given queue into an array
         String[] qk = new String[q_k.size()];
         for (int j = 0; j < q_k.size(); j++) {
@@ -246,7 +332,7 @@ public class Folca {
      * @param pos   given position
      * @return whether queue[i, i+1] is a minimal pair
      */
-    public boolean isMinimal(String[] queue, int pos) {
+    private boolean isMinimal(String[] queue, int pos) {
         // [?, terminal, ?]
         if (queue[pos].length() == 1) {
             // [terminal, terminal, ?]
@@ -299,7 +385,7 @@ public class Folca {
      * @param pos   given position
      * @return whether queue[i, i+1] is a maximal pair
      */
-    public boolean isMaximal(String[] queue, int pos) {
+    private boolean isMaximal(String[] queue, int pos) {
         String s0 = queue[pos - 1];
         String s1 = queue[pos];
         String s2 = queue[pos + 1];
@@ -322,7 +408,7 @@ public class Folca {
      * @return least common ancestor of (i, j) in the complete binary tree of the
      *         alphabets
      */
-    public long lca(String i, String j) {
+    private long lca(String i, String j) {
         // Terminals casted into integers
         long l_i = (i.length() == 1) ? (int) i.charAt(0) : -1;
         long l_j = (j.length() == 1) ? (int) j.charAt(0) : -1;
@@ -347,16 +433,16 @@ public class Folca {
      * @param Y second symbol in pair
      * @return the nonterminal that produces the pair
      */
-    public String update(String X, String Y) {
+    private String update(String X, String Y) {
         Pair<String, String> rhs = new Pair<>(X, Y);
-        String Z = D_r.get(X + Y);
+        String Z = reverseDict.get(X + Y);
         if (Z == null) { // check if the rhs is in the reverse dictionary
             // assign a new nonterminal
             Z = long_2_nonterminal(nonTerminalCounter);
             nonTerminalCounter++;
-            D_r.put(X + Y, Z); // add the new production rule to the reverse dictionary
-            if (!D.containsKey(Z)) {
-                D.put(Z, rhs); // add the new production rule to the phrase dictionary
+            reverseDict.put(X + Y, Z); // add the new production rule to the reverse dictionary
+            if (!dict.containsKey(Z)) {
+                dict.put(Z, rhs); // add the new production rule to the phrase dictionary
             }
         }
         return Z;
@@ -369,40 +455,40 @@ public class Folca {
      * @param Y second symbol in pair
      * @return the nonterminal that produces the pair
      */
-    public String freqCountingUpdate(String X, String Y) {
-        String Z = D_r.get(X + Y);
-        if (Z != null) { // D contains the rule
+    private String freqCountingUpdate(String X, String Y) {
+        String Z = reverseDict.get(X + Y);
+        if (Z != null) { // dict contains the rule
             // Increment the frequency by 1
-            if (freq_counter.containsKey(Z)) {
-                freq_counter.replace(Z, freq_counter.get(Z) + 1);
+            if (freqCounter.containsKey(Z)) {
+                freqCounter.replace(Z, freqCounter.get(Z) + 1);
             } else {
-                freq_counter.put(Z, 1);
+                freqCounter.put(Z, 1);
             }
-        } else { // D does not contains the rule
+        } else { // dict does not contains the rule
             Z = long_2_nonterminal(nonTerminalCounter);
             nonTerminalCounter++;
             // If the size of the phrase dictionary reached the max size
-            if (D.size() >= k) {
+            if (dict.size() >= maxDictSize) {
                 // Remove infrequent rules
-                while (k * (1 - ep / 100) < D.size()) {
-                    Iterator iterator = D.keySet().iterator();
+                while (maxDictSize * (1 - vacancyRate / 100) < dict.size()) {
+                    Iterator iterator = dict.keySet().iterator();
                     while (iterator.hasNext()) {
                         String nonterminal = (String) iterator.next();
-                        freq_counter.replace(nonterminal, freq_counter.get(nonterminal) - 1);
-                        if (freq_counter.get(nonterminal) == 0) {
+                        freqCounter.replace(nonterminal, freqCounter.get(nonterminal) - 1);
+                        if (freqCounter.get(nonterminal) == 0) {
                             iterator.remove();
-                            freq_counter.remove(nonterminal);
+                            freqCounter.remove(nonterminal);
                         }
                     }
                 }
             }
             // Add the new production rule
             Pair<String, String> rhs = new Pair<>(X, Y);
-            D_r.put(X + Y, Z); // add the new production rule to the reverse dictionary
-            if (!D.containsKey(Z))
-                D.put(Z, rhs); // add the new production rule to the phrase dictionary
-            if (!freq_counter.containsKey(Z))
-                freq_counter.put(Z, 1);
+            reverseDict.put(X + Y, Z); // add the new production rule to the reverse dictionary
+            if (!dict.containsKey(Z))
+                dict.put(Z, rhs); // add the new production rule to the phrase dictionary
+            if (!freqCounter.containsKey(Z))
+                freqCounter.put(Z, 1);
         }
         return Z;
     }
@@ -413,12 +499,10 @@ public class Folca {
      * @param nonterminal
      * @return an integer representing the nonterminal
      */
-    public long nonterminal_2_long(String nonterminal) {
+    private long nonterminal_2_long(String nonterminal) {
         String alphabet = String.valueOf(nonterminal.charAt(0));
         int a = (int) Integer.valueOf(Arrays.asList(alphabets).indexOf(alphabet));
-        // System.out.println(a);
         long n = (long) Integer.valueOf(nonterminal.substring(1));
-        // System.out.println(n);
         return n * 26 + a;
     }
 
@@ -428,7 +512,7 @@ public class Folca {
      * @param x an integer
      * @return the nontermial representing the integer
      */
-    public String long_2_nonterminal(long x) {
+    private String long_2_nonterminal(long x) {
         int n = (int) x / 26;
         return alphabets[(int) x % 26] + String.valueOf(n);
     }
@@ -478,7 +562,6 @@ public class Folca {
         Map<String, Pair<String, String>> Dict = new HashMap<String, Pair<String, String>>();
         Stack<String> S = new Stack<String>();
         try {
-            String original_text = "";
             PrintWriter outputWriter = new PrintWriter(file + "(1)");
             while (!bit_stream.isEmpty()) {
                 byte bit = bit_stream.poll();
@@ -487,7 +570,6 @@ public class Folca {
                     String leaf = encoding.poll();
                     S.add(leaf);
                     if (leaf.length() == 1) { // terminals
-                        original_text += leaf;
                         outputWriter.print(leaf);
                     } else { // nonterminals
                         // Recover subtext using Dict
@@ -500,12 +582,10 @@ public class Folca {
                                 stack1.add(rhs.first);
                                 stack1.add(rhs.second);
                             } else { // append to the text for a terminal
-                                original_text += current_node;
                                 outputWriter.print(current_node);
                             }
                         }
                     }
-                    // System.out.println("original text so far: " + original_text);
                 } else { // internal node
                     c--;
                     if (c > 0) {
@@ -518,16 +598,9 @@ public class Folca {
                         S.add(nonterminal);
                     }
                 }
-                // Seems useless
-                // if (c == 0) { // finished
-                // System.out.println("Original text recovered: \n" + original_text);
-                // String A = S.pop();
-                // for (Map.Entry<String, Pair<String, String>> rule : Dict.entrySet()) {
-                // System.out.println(rule.getKey() + "->" + rule.getValue().first + " " +
-                // rule.getValue().second);
-                // }
-                // }
+
             }
+            System.out.println("Output successfully saved to " + file + "(1) \n");
             outputWriter.close();
         } catch (Exception e) {
             System.err.println("Failed to save the output");
@@ -583,13 +656,13 @@ public class Folca {
                         file = file.substring(0, file.length() - 4);
                         // Encode cfg
                         CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
-                        cfg2poppt.cfg2poppt(cfg, file);
+                        cfg2poppt.cfg_2_poppt(cfg, file);
                         break;
                     }
                 }
                 case '4': {
                     // cfg -> tree
-                    System.out.println("Choose the file to convert: ");
+                    System.out.println("Choose the file to visualise: ");
                     file = Main.inputScanner.nextLine();
                     // Check if file exists
                     if (!new File(file).isFile()) {
@@ -608,13 +681,14 @@ public class Folca {
                 }
                 case '5': {
                     // Get input file
-                    System.out.println("Choose the file to convert: ");
+                    System.out.println("Choose the file to decompress: ");
                     file = Main.inputScanner.nextLine();
                     // Check if file exists
                     if (!new File(file).isFile()) {
                         System.out.println("Error: File does not exist.");
                         break;
                     }
+
                     // Check file format
                     if (!file.substring(file.length() - 4, file.length()).equals(".slp")) {
                         System.out.println("Wrong file type, please select a file of type .slp");
@@ -624,15 +698,16 @@ public class Folca {
                         POPPT_2_TEXT p = new POPPT_2_TEXT();
                         p.poppt_2_text(new ParsePOPPT().parsePOPPT(file), file.substring(0,
                                 file.length() - 4));
+
                     }
                     break;
 
                 }
                 case '6': {
-
                     // Get input file
-                    System.out.println("Choose the file to convert: ");
+                    System.out.println("Choose the file to decompress: ");
                     file = Main.inputScanner.nextLine();
+
                     // Check if file exists
                     if (!new File(file).isFile()) {
                         System.out.println("Error: File does not exist.");
@@ -644,8 +719,9 @@ public class Folca {
                     } else {
                         // cfg -> poppt -> text
                         CFG_2_POPPT cfg2poppt = new CFG_2_POPPT();
-                        f.poppt_2_txt(cfg2poppt.cfg2poppt(new ParseCFG(file).getCFG()),
+                        f.poppt_2_txt(cfg2poppt.cfg_2_poppt(new ParseCFG(file).getCFG()),
                                 file.substring(0, file.length() - 4));
+
                     }
                     break;
                 }

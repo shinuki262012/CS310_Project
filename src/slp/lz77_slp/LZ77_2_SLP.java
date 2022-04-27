@@ -6,19 +6,14 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
-import java.nio.charset.StandardCharsets;
-import java.sql.PseudoColumnUsage;
 import java.util.Map;
 import java.util.HashMap;
 
-import slp.Main;
 import slp.util.*;
-import slp.lz77_slp.gzip_parser.*;
 import slp.text_slp.SLP_2_Text;
 import slp.text_slp.Text_2_SLP;
 
 /**
- * 
  * Parse the input .gz file to obtain a LZ77 parsing of size z of text T.
  * Then compute the SLP of the LZ77.
  * 
@@ -30,7 +25,6 @@ public class LZ77_2_SLP {
     ArrayList<Integer> lz77Parsing;
     ArrayList<Pair<Integer, Integer>> factorization;
     Map<String, Pair<String, String>> grammar;
-
     public static long nonTerminalCounter = 0;
 
     public LZ77_2_SLP() {
@@ -39,7 +33,6 @@ public class LZ77_2_SLP {
         lz77Parsing = new ArrayList<Integer>();
         factorization = new ArrayList<Pair<Integer, Integer>>();
         grammar = new HashMap<String, Pair<String, String>>();
-
     }
 
     /**
@@ -72,11 +65,7 @@ public class LZ77_2_SLP {
             } else {
                 p.first = (position - (int) p.first);
                 position += (int) p.second;
-
             }
-        }
-        for (Pair<Integer, Integer> p : factorization) {
-            System.out.println(p.first + "," + p.second);
         }
 
         /* Convert LZ77 parsing into SLP */
@@ -93,7 +82,6 @@ public class LZ77_2_SLP {
         } catch (Exception e) {
             System.out.println("Unable to decompress the input file");
         }
-        System.out.println("input string: " + text);
         Text_2_SLP t = new Text_2_SLP();
         grammar = t.compress(text, factorization);
 
@@ -103,7 +91,7 @@ public class LZ77_2_SLP {
             PrintWriter outputWriter = new PrintWriter(file + ".cfg");
             for (Map.Entry<String, Pair<String, String>> rule : grammar.entrySet()) {
                 outputWriter.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
-                System.out.println(rule.getKey() + "->" + rule.getValue().first + " " + rule.getValue().second);
+                // rule.getValue().second);
             }
             System.out.println("Output successfully saved to " + file + ".cfg \n");
             outputWriter.close();

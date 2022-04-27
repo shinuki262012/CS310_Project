@@ -5,8 +5,10 @@ package slp.text_slp;
  * symbols.
  * 
  * @see #buildSuffixArray(int[], int, int)
- * 
+ *      Source:
  *      https://github.com/carrotsearch/jsuffixarrays/blob/master/src/main/java/org/jsuffixarrays/ISuffixArrayBuilder.java
+ *      License details:
+ *      https://github.com/carrotsearch/jsuffixarrays/blob/master/README
  */
 public interface ISuffixArrayBuilder {
     /**

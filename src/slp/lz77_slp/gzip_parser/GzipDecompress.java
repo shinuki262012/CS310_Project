@@ -26,7 +26,6 @@ import java.util.zip.DataFormatException;
 
 import slp.util.GeneralException;
 
-//TODO
 /**
  * Decompression application for the gzip file format.
  * <p>

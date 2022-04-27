@@ -3,7 +3,7 @@ package slp.util;
 import java.io.Serializable;
 
 /**
- * Represent the RHS of a production rule: A -> BC / A -> a.
+ * Represent the RHS of a production rule or a tuple in LZ77 factorization
  * 
  * @author Tianlong Zhong
  */

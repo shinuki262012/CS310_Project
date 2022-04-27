@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-import javax.print.attribute.standard.OutputDeviceAssigned;
-
 /**
  * Convert the SLP into LZ77 factorization
  * 
@@ -28,18 +26,15 @@ public class SLP_2_LZ77 {
     // store the nonterminals that are back references
     public ArrayList<String> backReferences = new ArrayList<>();
 
-    public void SLP2LZ77(String file) {
+    public void slp_2_lz77(String file) {
         try {
             // Parse input CFG
             cfg = new ParseCFG(file).getCFG();
 
             // Calculate the length of the substirngs
             getSubLengths();
-            for (Map.Entry<String, Integer> a : subLengths.entrySet()) {
-                System.out.println(a.getKey() + " " + a.getValue());
-            }
 
-            ArrayList<String> lz = new ArrayList<>();
+            ArrayList<String> lz = new ArrayList<>(); // hold the expansion
             lz.add("S00");
             boolean terminate = false;
             int maxLength = 0;
@@ -66,7 +61,6 @@ public class SLP_2_LZ77 {
                         curIdx += subLengths.get(nonterminal);
                     }
                 }
-                System.out.println("instance:" + instance);
                 // Replace the left most instance with its definition
                 if (cfg.get(instance).second == null) { // A -> a
                     lz.set(instanceIndex, cfg.get(instance).first);
@@ -106,13 +100,8 @@ public class SLP_2_LZ77 {
                         break;
                     }
                 }
-                System.out.println(lz.toString());
             }
 
-            // Get indexs of back references
-            for (Map.Entry<String, Integer> a : indexs.entrySet()) {
-                System.out.println(a.getKey() + " " + a.getValue());
-            }
             String nonterminal, currentFactor;
 
             // Construct the LZ77 factorization
@@ -132,8 +121,8 @@ public class SLP_2_LZ77 {
                 PrintWriter printWriter = new PrintWriter(file.substring(0, file.length() - 4) + ".lz77");
                 for (int i = 0; i < lz77.size(); i++) {
                     printWriter.println(lz77.get(i).first + ", " + lz77.get(i).second);
-                    System.out.println(lz77.get(i).first + ", " + lz77.get(i).second);
                 }
+                System.out.println("Output successfully saved to " + file.substring(0, file.length() - 4) + ".lz77 \n");
                 printWriter.close();
             } catch (Exception e) {
                 System.out.println("Failed to save the output");
@@ -184,17 +173,14 @@ public class SLP_2_LZ77 {
         StringBuffer sb = new StringBuffer();
         for (Pair<Integer, Integer> p : this.lz77) {
             if (p.second == 0) {
-                // System.out.println("next char is " + (char) (int) p.first);
                 sb.append((char) (int) p.first);
             } else {
                 for (int i = 0; i < p.second; i++) {
                     char nextChar = sb.charAt(p.first + i);
-                    // System.out.println("next char is " + nextChar);
                     sb.append(nextChar);
                 }
             }
         }
-        // System.out.println("Decompressed String: " + new String(sb));
         return new String(sb);
     }
 
@@ -248,13 +234,13 @@ public class SLP_2_LZ77 {
                     if (new File(file).isDirectory()) {
                         throw new GeneralException("Error: input is a directory: " + file);
                     }
-                    new SLP_2_LZ77().SLP2LZ77(file);
+                    new SLP_2_LZ77().slp_2_lz77(file);
                 } catch (GeneralException e) {
                     System.err.println(e.getMessage());
-                    // System.exit(1);
+                    System.exit(1);
                 }
             } else if (inputs.charAt(0) == '2') {
-                System.out.println("Choose a .lz77 file to covert:");
+                System.out.println("Choose a .lz77 file to decompress:");
                 String file = slp.Main.inputScanner.nextLine().toString().trim();
                 if (file.isEmpty()) {
                     System.out.println("No file was given.");

@@ -16,11 +16,9 @@ import java.util.zip.DataFormatException;
 import javax.swing.plaf.synth.SynthSpinnerUI;
 import java.nio.ByteOrder;
 
-//TODO
 /**
  * Decompresses raw DEFLATE data (without zlib or gzip container) into bytes.
  * Modified
- * 
  */
 public final class Decompressor {
 
@@ -209,7 +207,7 @@ public final class Decompressor {
 				break;
 
 			if (sym < 256) { // Literal byte
-				System.out.println("(" + sym + ", 0)");
+				// System.out.println("(" + sym + ", 0)");
 				LZ77Parsing.add((int) sym);
 				LZ77Parsing.add(0);
 				dictionary.append(sym);
@@ -223,7 +221,7 @@ public final class Decompressor {
 				int dist = decodeDistance(distSym);
 				if (dist < 1 || dist > 32768)
 					throw new AssertionError("Invalid distance");
-				System.out.println("(" + dist + ", " + run + ")");
+				// System.out.println("(" + dist + ", " + run + ")");
 				LZ77Parsing.add(dist);
 				LZ77Parsing.add(run);
 			}

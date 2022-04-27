@@ -5,11 +5,8 @@ import slp.lz77_slp.*;
 import slp.util.*;
 
 import java.util.Scanner;
-import java.io.File;
 
 /**
- * 
- * 
  * @author Tianlong Zhong
  */
 public class Main {
@@ -98,6 +95,9 @@ public class Main {
         }
     }
 
+    /**
+     * LZ77 to SLP menu
+     */
     public static void lz77_2_slp_menu() {
         System.out.println("Choose the file to convert: ");
         String inputs = inputScanner.nextLine().toString().trim();
@@ -109,6 +109,9 @@ public class Main {
         }
     }
 
+    /**
+     * SLP to LZ77 menu
+     */
     public static void slp_2_lz77_menu() throws GeneralException {
         slp2lz77 = new SLP_2_LZ77();
         slp2lz77.main(null);

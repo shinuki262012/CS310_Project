@@ -90,7 +90,6 @@ public class BinaryTreeNode<E extends Comparable<E>> {
                 right.toString(prefix + (isLeft ? "| " : "  "), false);
             }
         } else {
-            // TODO: add new line, space and tab
             if (String.valueOf(value).equals("\n"))
                 System.out.println(prefix + (isLeft ? "|--" : "`--") + "\\n");
             else if (String.valueOf(value).equals(" "))

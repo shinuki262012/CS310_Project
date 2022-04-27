@@ -37,7 +37,6 @@ public class ParsePOPPT {
                 ObjectInputStream oin = new ObjectInputStream(fin);
                 encoding = (LinkedList<String>) oin.readObject();
                 oin.close();
-                // System.out.println(encoding.toString());
             } catch (Exception e) {
                 System.out.println("Failed to read the file");
                 e.printStackTrace();

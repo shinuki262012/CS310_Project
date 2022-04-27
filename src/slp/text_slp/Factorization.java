@@ -5,6 +5,31 @@ import slp.util.Pair;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+////////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2013 Juha Karkkainen, Dominik Kempa and Simon J. Puglisi
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * Linear time algorithm computing the LZ77 factorization translated from the
  * C++ implementation (https://github.com/martiniani-lab/sweetsourcod.git)
@@ -14,6 +39,7 @@ import java.util.Arrays;
  * Linear Time Lempel-Ziv Factorization: Simple, Fast, Small.
  * In Proc. CPM 2013, LNCS vol. 7922, pp. 189-200. Springer 2013.
  * 
+ * Original License attach above.
  */
 public class Factorization {
     public ArrayList<Pair<Integer, Integer>> lz77Factorization = new ArrayList<Pair<Integer, Integer>>();
@@ -40,7 +66,6 @@ public class Factorization {
         // Compute the lz77 factorization
         inputString = input.getBytes();
         kkp2(suffix_array, input.length());
-
         return lz77Factorization;
     }
 

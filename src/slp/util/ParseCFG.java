@@ -93,7 +93,7 @@ public class ParseCFG {
                 // Add production rule
                 cfg.put(lhs, rhs);
             }
-            flush();
+            // flush();
         } catch (Exception e) {
             System.out.println("Failed to read the file");
             // e.printStackTrace();

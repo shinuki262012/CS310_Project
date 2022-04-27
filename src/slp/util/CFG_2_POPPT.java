@@ -26,12 +26,11 @@ public class CFG_2_POPPT {
      * @param cfg input context free grammar
      * @return Post-order partial parse tree
      */
-    public LinkedList<String> cfg2poppt(Map<String, Pair<String, String>> cfg) {
+    public LinkedList<String> cfg_2_poppt(Map<String, Pair<String, String>> cfg) {
         // Build a POPPT out of the POSLP
         LinkedList<Byte> bitStream = new LinkedList<>();
         ArrayList<String> innerNodes = new ArrayList<>();
         ArrayList<Boolean> inner_appeared_twice = new ArrayList<>();
-
         Stack<String> s = new Stack<String>();
         s.add("S00"); // add the start symbol
         while (!s.isEmpty()) {
@@ -40,6 +39,7 @@ public class CFG_2_POPPT {
                 innerNodes.add(current_node);
                 inner_appeared_twice.add(false);
                 Pair<String, String> rhs = cfg.get(current_node);
+                s.pop();
                 s.add(rhs.second);
                 s.add(rhs.first);
                 // Remove the applied rule
@@ -71,9 +71,9 @@ public class CFG_2_POPPT {
      * @param cfg  input CFG
      * @param file file name
      */
-    public void cfg2poppt(Map<String, Pair<String, String>> cfg, String file) {
+    public void cfg_2_poppt(Map<String, Pair<String, String>> cfg, String file) {
         try {
-            cfg2poppt(cfg);
+            cfg_2_poppt(cfg);
 
             // Output encoding to the file
             FileOutputStream fos = new FileOutputStream(file + ".slp");

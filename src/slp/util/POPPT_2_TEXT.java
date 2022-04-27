@@ -36,7 +36,6 @@ public class POPPT_2_TEXT {
      * @param file     file to be saved into.
      */
     public void poppt_2_text(LinkedList<String> encoding, String file) {
-        System.out.println("encoding: " + encoding.toString());
         // Restore the bit stream
         LinkedList<Byte> bit_stream = new LinkedList<>();
         for (String s : encoding.removeFirst().split("")) {
@@ -47,7 +46,6 @@ public class POPPT_2_TEXT {
         HashMap<String, Pair<String, String>> Dict = new HashMap<String, Pair<String, String>>();
         Stack<String> S = new Stack<String>();
         try {
-            String original_text = "";
             PrintWriter outputWriter = new PrintWriter(file + "(1)");
             while (!bit_stream.isEmpty()) {
                 byte bit = bit_stream.poll();
@@ -56,7 +54,6 @@ public class POPPT_2_TEXT {
                     String leaf = encoding.poll();
                     S.add(leaf);
                     if (leaf.length() == 1) { // terminals
-                        original_text += leaf;
                         outputWriter.print(leaf);
                     } else { // nonterminals
                         // Recover subtext using Dict
@@ -66,16 +63,13 @@ public class POPPT_2_TEXT {
                             String current_node = stack1.pop();
                             if (Dict.containsKey(current_node)) { // apply the production rule for a nonterminal
                                 Pair<String, String> rhs = Dict.get(current_node);
-                                System.out.println("first:|" + rhs.first + "|second|" + rhs.second + "|");
                                 stack1.add(rhs.first);
                                 stack1.add(rhs.second);
                             } else { // append to the text for a terminal
-                                original_text += current_node;
                                 outputWriter.print(current_node);
                             }
                         }
                     }
-                    System.out.println("original text so far: " + original_text + "|");
                 } else { // internal node
                     c--;
                     if (c > 0) {

@@ -13,8 +13,11 @@ import java.util.Arrays;
  *
  * The implementation of this algorithm makes some assumptions about the input.
  * See {@link #buildSuffixArray(int[], int, int)} for details.
- * 
+ * Source:
  * https://github.com/carrotsearch/jsuffixarrays/blob/master/src/main/java/org/jsuffixarrays/Skew.java
+ * 
+ * License details:
+ * https://github.com/carrotsearch/jsuffixarrays/blob/master/README
  */
 public final class Skew implements ISuffixArrayBuilder {
     /**
