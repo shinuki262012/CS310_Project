@@ -66,7 +66,7 @@ On input '1', the user is prompted to choose the offline or online version of th
    decompress the '.cfg' into text, result will be saved as a new file with suffix '(1)'.
 
 **Convert LZ77 to SLP**
-convert a GZIP compressed ('.gz') file into a SLP('.cfg') file.
+1. convert a GZIP compressed ('.gz') file into a SLP('.cfg') file.
 
 **Convert SLP to LZ77**
 
